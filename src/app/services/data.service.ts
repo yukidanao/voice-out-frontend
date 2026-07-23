@@ -7,7 +7,7 @@ import { Observable, Subject } from 'rxjs';
   providedIn: 'root',
 })
 export class DataService {
-  private apiUrl = 'https://voiceout-app-backend-wpfp.onrender.com/api';
+  private apiUrl = 'https://voiceout-backend-1l8k.onrender.com/api';
   private socket: WebSocket | null = null;
   public newVoiceOut$ = new Subject<any>();
 

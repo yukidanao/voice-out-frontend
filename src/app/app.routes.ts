@@ -11,7 +11,7 @@ export const routes: Routes = [
   { path: 'home', component: LandingComponent },
   { path: 'voices', component: VoicesComponent, canActivate: [passcodeGuard] },
   { path: 'feedback', component: FeedbackComponent, canActivate: [passcodeGuard] },
-  { path: 'about', component: AboutComponent, canActivate: [passcodeGuard] },
+  // { path: 'about', component: AboutComponent, canActivate: [passcodeGuard] },
   { path: 'authorize', component: AuthorizeComponent },
   { path: '**', redirectTo: '' }
 ];
