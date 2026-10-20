@@ -7,7 +7,7 @@ import { Observable, Subject } from 'rxjs';
   providedIn: 'root',
 })
 export class DataService {
-  private apiUrl = 'https://voiceout-backend-1l8k.onrender.com/api';
+  private apiUrl = 'https://voiceout-app.leelenardjose.workers.dev/api';
   private socket: WebSocket | null = null;
   public newVoiceOut$ = new Subject<any>();
 
@@ -49,7 +49,7 @@ export class DataService {
   initWebSocket(): void {
     if (isPlatformBrowser(this.platformId)) {
       // Check if we're in the browser
-      this.socket = new WebSocket('https://voiceout-backend-1l8k.onrender.com');
+      this.socket = new WebSocket('https://voiceout-app.leelenardjose.workers.dev');
 
       this.socket.onmessage = (event) => {
         const message = JSON.parse(event.data);
