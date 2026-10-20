@@ -1,15 +1,20 @@
-.archivo-black-regular {
-  font-family: "Archivo Black", sans-serif;
-  font-weight: 400;
-  font-style: normal;
+.caret {
+  display: inline-block;
+  width: 3px;
+  height: 0.78em;
+  margin-left: 6px;
+  border-radius: 999px;
+  vertical-align: -0.02em;
+  background: linear-gradient(to bottom, #a5b4fc, #a855f7);
+  animation: caret-blink 1.15s step-end infinite;
 }
 
-/* Typing effect */
-@keyframes typing {
-  from { width: 0; }
-  to { width: 100%; }
-}
-
-@keyframes typing-blink {
-  50% { border-color: transparent; }
+@keyframes caret-blink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
 }

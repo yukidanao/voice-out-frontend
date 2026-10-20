@@ -1,96 +1,198 @@
-<div *ngIf="loading" class="flex justify-center items-center h-screen">
-  <mat-spinner></mat-spinner>
-</div>
-
-<div *ngIf="!loading" class="flex justify-center p-4 animate-fade-right">
-  <div class="grid grid-cols-1 gap-4 w-full max-w-md">
-    <div
-      *ngFor="let voiceout of voices"
-      class="card bg-white border border-gray-200 rounded-lg shadow dark:bg-gray-800 dark:border-gray-700"
-    >
-      <ng-container [ngSwitch]="voiceout.fileType">
-        <img
-          *ngSwitchCase="'image'"
-          [src]="voiceout.file"
-          class="card-image rounded-t-lg"
-        />
-        <audio *ngSwitchCase="'audio'" controls class="audio-player w-full rounded-lg bg-gray-100 p-2 shadow-inner dark:bg-gray-800">
-          <source [src]="voiceout.file" type="audio/mpeg" />
-          Your browser does not support the audio element.
-        </audio>        
-        <video *ngSwitchCase="'video'" controls class="card-video rounded-t-lg">
-          <source [src]="voiceout.file" type="video/mp4" />
-          Your browser does not support the video element.
-        </video>
-      </ng-container>
-      <div class="card-content p-5">
-        <p class="mb-3 font-normal text-gray-700 dark:text-white">
-          {{ voiceout.voice_out }}
-        </p>
-        <p
-          class="mb-3 mt-2 text-base font-normal text-gray-700 dark:text-gray-500"
-        >
-          {{ voiceout.date | date : "MM-dd-yyyy, hh:mm a" : "Asia/Manila" }}
+<section class="page-shell-wide">
+  <header class="animate-fade-up">
+    <div class="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
+      <div>
+        <span class="eyebrow">
+          <span class="live-dot"></span>
+          Live wall
+        </span>
+        <h1 class="mt-4 font-display text-3xl font-bold tracking-tight sm:text-4xl">
+          Voices <span class="text-gradient">out loud</span>
+        </h1>
+        <p class="mt-2 max-w-xl text-sm leading-relaxed text-slate-400">
+          Anonymous thoughts from people who needed to say them. Scroll to hear more.
         </p>
       </div>
-    </div>
-  </div>
-</div>
-<div *ngIf="lazyLoading" class="text-center">
-  <p class="text-white">Loading...</p>
-</div>
 
-<!-- Toast Container -->
-<div class="fixed bottom-4 right-4 z-50 space-y-4">
-  <!-- Success Toast -->
-  <div
-    *ngIf="showSuccessToast"
-    id="toast-success"
-    class="toast fade-in-out flex items-center w-full max-w-xs p-4 mb-4 text-gray-500 bg-white rounded-lg shadow dark:text-gray-400 dark:bg-gray-800"
-    role="alert"
-  >
-    <div
-      class="inline-flex items-center justify-center flex-shrink-0 w-8 h-8 text-green-500 bg-green-100 rounded-lg dark:bg-green-800 dark:text-green-200"
-    >
-      <svg
-        class="w-5 h-5"
-        aria-hidden="true"
-        xmlns="http://www.w3.org/2000/svg"
-        fill="currentColor"
-        viewBox="0 0 20 20"
-      >
-        <path
-          d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5Zm3.707 8.207-4 4a1 1 0 0 1-1.414 0l-2-2a1 1 0 0 1 1.414-1.414L9 10.586l3.293-3.293a1 1 0 0 1 1.414 1.414Z"
-        />
-      </svg>
+      <button type="button" class="btn-primary hidden sm:inline-flex" (click)="openWrite()">
+        <app-icon name="pen" [size]="17" />
+        Write a note
+      </button>
     </div>
-    <div class="ms-3 text-sm font-normal">Note posted successfully</div>
-  </div>
 
-  <!-- Error Toast -->
-  <div
-    *ngIf="showErrorToast"
-    id="toast-danger"
-    class="toast fade-in-out flex items-center w-full max-w-xs p-4 mb-4 text-gray-500 bg-white rounded-lg shadow dark:text-gray-400 dark:bg-gray-800"
-    role="alert"
-  >
-    <div
-      class="inline-flex items-center justify-center flex-shrink-0 w-8 h-8 text-red-500 bg-red-100 rounded-lg dark:bg-red-800 dark:text-red-200"
-    >
-      <svg
-        class="w-5 h-5"
-        aria-hidden="true"
-        xmlns="http://www.w3.org/2000/svg"
-        fill="currentColor"
-        viewBox="0 0 20 20"
-      >
-        <path
-          d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5Zm3.707 11.793a1 1 0 1 1-1.414 1.414L10 11.414l-2.293 2.293a1 1 0 0 1-1.414-1.414L8.586 10 6.293 7.707a1 1 0 0 1 1.414-1.414L10 8.586l2.293-2.293a1 1 0 0 1 1.414 1.414L11.414 10l2.293 2.293Z"
-        />
-      </svg>
+    <div class="no-scrollbar mt-7 flex gap-2 overflow-x-auto pb-1">
+      @for (filter of filters; track filter.value) {
+        <button
+          type="button"
+          class="chip shrink-0"
+          [class.chip-active]="activeFilter === filter.value"
+          (click)="setFilter(filter.value)"
+        >
+          <app-icon [name]="filter.icon" [size]="13" />
+          {{ filter.label }}
+          <span class="tabular-nums opacity-60">{{ countFor(filter.value) }}</span>
+        </button>
+      }
     </div>
-    <div class="ms-3 text-sm font-normal">
-      Could not post your note right now
+
+    <p class="mt-2 text-xs text-slate-500" role="status">
+      Filters apply to {{ voices.length }} loaded {{ voices.length === 1 ? 'note' : 'notes' }}.
+    </p>
+  </header>
+
+  @if (loading) {
+    <div class="mt-8 grid gap-5 sm:grid-cols-2 2xl:grid-cols-3 2xl:gap-6">
+      @for (item of [1, 2, 3, 4, 5, 6]; track item) {
+        <div class="card animate-fade-up p-5" [style.animation-delay.ms]="item * 70">
+          <div class="flex items-center gap-3">
+            <div class="skeleton h-9 w-9 rounded-full"></div>
+            <div class="flex-1 space-y-2">
+              <div class="skeleton h-3 w-24"></div>
+              <div class="skeleton h-2.5 w-16"></div>
+            </div>
+          </div>
+          <div class="mt-5 space-y-2.5">
+            <div class="skeleton h-3 w-full"></div>
+            <div class="skeleton h-3 w-11/12"></div>
+            <div class="skeleton h-3 w-7/12"></div>
+          </div>
+          <div class="skeleton mt-5 h-24 w-full"></div>
+        </div>
+      }
     </div>
-  </div>
-</div>
+  } @else if (loadError && voices.length === 0) {
+    <div class="card mt-8 flex animate-fade-up flex-col items-center gap-3 p-10 text-center">
+      <span class="grid h-12 w-12 place-items-center rounded-2xl bg-rose-500/10 text-rose-300">
+        <app-icon name="alert" [size]="20" />
+      </span>
+      <h2 class="text-base font-semibold">Couldn't load the wall</h2>
+      <p class="max-w-sm text-sm text-slate-400">
+        The connection hiccuped. Give it another try in a moment.
+      </p>
+      <button type="button" class="btn-ghost mt-2" (click)="retry()">
+        <app-icon name="loader" [size]="15" />
+        Retry
+      </button>
+    </div>
+  } @else if (filteredVoices.length === 0) {
+    <div class="card mt-8 flex animate-fade-up flex-col items-center gap-3 p-12 text-center">
+      <span class="grid h-12 w-12 place-items-center rounded-2xl bg-accent-500/10 text-accent-300">
+        <app-icon name="waveform" [size]="20" />
+      </span>
+      <h2 class="text-base font-semibold">
+        {{
+          activeFilter === 'all'
+            ? 'The wall is quiet'
+            : 'No matching ' + (activeFilter === 'image' ? 'photo' : activeFilter) + ' posts ' + (reachedEnd ? 'found' : 'in loaded notes')
+        }}
+      </h2>
+      <p class="max-w-sm text-sm text-slate-400">
+        @if (activeFilter !== 'all' && !reachedEnd) {
+          There may be matches on later pages. Load more notes to keep checking.
+        } @else {
+          Be the first voice here. Your words are safe and anonymous.
+        }
+      </p>
+      @if (activeFilter !== 'all' && !reachedEnd) {
+        <button type="button" class="btn-ghost mt-2" (click)="getVoices()" [disabled]="lazyLoading">
+          @if (lazyLoading) {
+            <span class="h-4 w-4 animate-spin rounded-full border-2 border-white/20 border-t-accent-400"></span>
+            Loading notes...
+          } @else {
+            Load more notes
+          }
+        </button>
+      } @else {
+        <button type="button" class="btn-primary mt-2" (click)="openWrite()">
+          <app-icon name="pen" [size]="16" />
+          Share the first thought
+        </button>
+      }
+    </div>
+  } @else {
+    <div class="mt-8 grid items-start gap-5 sm:grid-cols-2 2xl:grid-cols-3 2xl:gap-6">
+      @for (voiceout of filteredVoices; track $index; let i = $index) {
+        <article
+          class="card card-interactive voice-card group flex animate-fade-up flex-col"
+          [style.--tint]="tint(voiceout)"
+          [style.animation-delay.ms]="stagger(i)"
+        >
+          <div class="flex items-center gap-3 px-5 pt-5">
+            <span class="avatar grid h-9 w-9 place-items-center rounded-full">
+              <app-icon name="sparkles" [size]="15" />
+            </span>
+            <div class="min-w-0 flex-1">
+              <p class="text-[13px] font-semibold text-slate-200">Anonymous</p>
+              <p class="flex items-center gap-1 text-[11px] text-slate-500">
+                <app-icon name="clock" [size]="11" />
+                {{ voiceout.date | date: 'MMM d, y · h:mm a' : 'Asia/Manila' }}
+              </p>
+            </div>
+
+            @if (voiceout.fileType && voiceout.fileType !== 'unknown') {
+              <span
+                class="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.03] px-2.5 py-1 text-[10px] font-medium uppercase tracking-wide text-slate-400"
+              >
+                <app-icon [name]="mediaIcon(voiceout.fileType)" [size]="11" />
+                {{ mediaLabel(voiceout.fileType) }}
+              </span>
+            }
+          </div>
+
+          @if (voiceout.fileType === 'image') {
+            <div class="mx-3 mt-4 overflow-hidden rounded-xl border border-white/[0.06] bg-black/20">
+              <img
+                [src]="voiceout.file || ''"
+                alt="Anonymous photo shared on VoiceOut"
+                loading="lazy"
+                class="block max-h-[32rem] w-full object-contain"
+              />
+            </div>
+          } @else if (voiceout.fileType === 'video') {
+            <div class="mx-3 mt-4">
+              <app-video-player [src]="voiceout.file || ''" />
+            </div>
+          } @else if (voiceout.fileType === 'audio') {
+            <div class="mx-3 mt-4">
+              <app-audio-player [src]="voiceout.file || ''" />
+            </div>
+          }
+
+          <div class="flex-1 px-5 pb-5 pt-4">
+            @if (voiceout.voice_out) {
+              <p class="whitespace-pre-line break-words text-[14.5px] leading-relaxed text-slate-200">
+                {{ voiceout.voice_out }}
+              </p>
+            } @else {
+              <p class="text-[13px] italic text-slate-500">
+                Shared a {{ mediaLabel(voiceout.fileType || '') }} without words.
+              </p>
+            }
+          </div>
+        </article>
+      }
+    </div>
+
+    <div class="mt-10 flex items-center justify-center gap-3 text-xs text-slate-500">
+      @if (lazyLoading) {
+        <span class="h-4 w-4 animate-spin rounded-full border-2 border-white/20 border-t-accent-400"></span>
+        Loading more voices...
+      } @else if (loadError) {
+        <button type="button" class="btn-ghost" (click)="getVoices()">
+          <app-icon name="loader" [size]="15" />
+          Retry loading more
+        </button>
+      } @else if (!reachedEnd) {
+        <button type="button" class="btn-ghost" (click)="getVoices()">
+          Load more notes
+        </button>
+      } @else if (reachedEnd) {
+        <span class="inline-flex items-center gap-2">
+          <span class="h-px w-8 bg-white/10"></span>
+          You've reached the end
+          <span class="h-px w-8 bg-white/10"></span>
+        </span>
+      }
+    </div>
+  }
+</section>

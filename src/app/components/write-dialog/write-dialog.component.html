@@ -1,32 +1,160 @@
-<div>
-  <h2 mat-dialog-title>What's on your mind?</h2>
-  <div *ngIf="isLoading" class="loading-overlay">
-    <mat-progress-spinner mode="indeterminate"></mat-progress-spinner>
-  </div>
+@if (dialog.writeOpen()) {
+  <div
+    class="fixed inset-0 z-[70] flex items-end justify-center sm:items-center sm:p-4"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="write-title"
+  >
+    <div class="absolute inset-0 animate-fade-in bg-ink-950/80 backdrop-blur-md" (click)="close()"></div>
 
-  <mat-dialog-content [class.blurred]="isLoading">
-    <form [formGroup]="writeForm">
-      <mat-form-field class="custom-width">
-        <input
-          matInput
+    <div
+      class="relative flex max-h-[92vh] w-full max-w-lg animate-scale-in flex-col overflow-hidden rounded-t-3xl border border-white/10 bg-ink-850/95 shadow-2xl sm:rounded-3xl"
+    >
+      <div class="h-1 w-full bg-gradient-to-r from-accent-500 via-violet-500 to-fuchsia-500"></div>
+
+      <header class="flex items-start gap-3 px-5 pt-5 sm:px-6">
+        <span
+          class="grid h-11 w-11 shrink-0 place-items-center rounded-2xl border border-accent-400/20 bg-accent-500/10 text-accent-300"
+        >
+          <app-icon name="pen" [size]="19" />
+        </span>
+        <div class="min-w-0 flex-1">
+          <h2 id="write-title" class="font-display text-lg font-semibold text-white">
+            What's on your mind?
+          </h2>
+          <p class="mt-0.5 text-xs text-slate-400">No name, no judgment. Just say it.</p>
+        </div>
+        <button
+          type="button"
+          class="btn-icon !h-8 !w-8"
+          (click)="close()"
+          aria-label="Close dialog"
+          [disabled]="isLoading()"
+        >
+          <app-icon name="x" [size]="15" />
+        </button>
+      </header>
+
+      <div class="mt-5 flex-1 overflow-y-auto px-5 pb-2 sm:px-6">
+        <div class="mb-2 flex items-center justify-between">
+          <label for="thought" class="field-label !mb-0">Your thought</label>
+          <span class="text-[11px] tabular-nums text-slate-500">{{ characterCount }} / 1000</span>
+        </div>
+
+        <textarea
+          id="thought"
+          #textarea
+          rows="4"
+          maxlength="1000"
+          class="field resize-none"
           placeholder="Say your thought..."
-          formControlName="thoughtText"
-        />
-      </mat-form-field>
-      <p class="text-black text-base">
-        You may upload a media file (photo, audio, video, etc.)
-      </p>
-      <input type="file" (change)="onFileSelected($event)" />
-    </form>
-  </mat-dialog-content>
+          [formControl]="form.controls.thoughtText"
+        ></textarea>
 
-  <mat-dialog-actions>
-    <button mat-button (click)="onCancel()" [disabled]="isLoading">
-      Cancel
-    </button>
-    <button mat-button (click)="onSubmit()" [disabled]="isLoading">
-      <ng-container *ngIf="!isLoading">Submit</ng-container>
-      <ng-container *ngIf="isLoading">Loading...</ng-container>
-    </button>
-  </mat-dialog-actions>
-</div>
+        <div class="mt-4">
+          <div class="mb-2 flex items-center justify-between">
+            <span class="field-label !mb-0">Attach media <span class="text-slate-500">(optional)</span></span>
+            <span class="text-[11px] text-slate-500">Photo · Audio · Video</span>
+          </div>
+
+          @if (!selectedFile()) {
+            <label
+              class="group flex cursor-pointer flex-col items-center justify-center gap-2 rounded-2xl border border-dashed px-4 py-6 text-center transition duration-300"
+              [ngClass]="
+                dragActive()
+                  ? 'border-accent-400/70 bg-accent-500/10'
+                  : 'border-white/15 bg-white/[0.02] hover:border-white/25 hover:bg-white/[0.04]'
+              "
+              (dragover)="onDragOver($event)"
+              (dragleave)="onDragLeave($event)"
+              (drop)="onDrop($event)"
+            >
+              <span
+                class="grid h-9 w-9 place-items-center rounded-xl bg-white/[0.04] text-slate-400 transition duration-300 group-hover:text-accent-300"
+              >
+                <app-icon name="upload" [size]="17" />
+              </span>
+              <span class="text-xs font-medium text-slate-300">
+                Drop a file here or <span class="text-accent-300">browse</span>
+              </span>
+              <span class="text-[11px] text-slate-500">Images, audio and video are supported</span>
+              <input
+                type="file"
+                class="sr-only"
+                accept="image/*,audio/*,video/*"
+                (change)="onFileInput($event)"
+              />
+            </label>
+          } @else {
+            <div class="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.03] p-3">
+              @if (previewUrl()) {
+                <img
+                  [src]="previewUrl()"
+                  alt="Selected file preview"
+                  class="h-12 w-12 shrink-0 rounded-xl bg-black/20 object-contain"
+                />
+              } @else {
+                <span
+                  class="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-accent-500/10 text-accent-300"
+                >
+                  <app-icon
+                    [name]="fileKind() === 'audio' ? 'music' : fileKind() === 'video' ? 'video' : 'image'"
+                    [size]="19"
+                  />
+                </span>
+              }
+              <div class="min-w-0 flex-1">
+                <p class="truncate text-xs font-medium text-slate-100">{{ selectedFile()!.name }}</p>
+                <p class="mt-0.5 text-[11px] capitalize text-slate-500">
+                  {{ formatSize(selectedFile()!.size) }} · {{ fileKind() }}
+                </p>
+              </div>
+              <button
+                type="button"
+                class="btn-icon !h-8 !w-8"
+                (click)="removeFile()"
+                aria-label="Remove attached file"
+              >
+                <app-icon name="x" [size]="14" />
+              </button>
+            </div>
+          }
+        </div>
+
+        <p
+          class="mt-4 flex items-start gap-2 rounded-xl border border-white/[0.06] bg-white/[0.02] p-3 text-[11px] leading-relaxed text-slate-400"
+        >
+          <app-icon name="shield" [size]="14" class="mt-0.5 text-emerald-400/80" />
+          Posts are anonymous. Please keep the wall kind — negative posts are removed.
+        </p>
+      </div>
+
+      <footer
+        class="mt-3 flex items-center gap-2 border-t border-white/[0.06] px-5 pt-4 pb-[max(1rem,env(safe-area-inset-bottom))] sm:px-6"
+      >
+        <button
+          type="button"
+          class="btn-ghost"
+          (click)="close()"
+          [disabled]="isLoading()"
+        >
+          Cancel
+        </button>
+        <button
+          type="button"
+          class="btn-primary flex-1"
+          (click)="onSubmit()"
+          [disabled]="isLoading() || !canSubmit"
+        >
+          @if (isLoading()) {
+            <span class="animate-spin"><app-icon name="loader" [size]="16" /></span>
+            Posting...
+          } @else {
+            <app-icon name="send" [size]="16" />
+            Post anonymously
+          }
+        </button>
+      </footer>
+    </div>
+  </div>
+}

@@ -1,21 +1,83 @@
-<div class="flex items-center justify-center min-h-screen bg-gray-900">
-    <div class="bg-white p-8 rounded-lg shadow-lg w-full max-w-sm">
-      <h2 class="text-2xl font-bold text-center text-gray-800 mb-6">Enter Passcode</h2>
-      <input 
-        [(ngModel)]="passcode" 
-        type="text" 
-        maxlength="8" 
-        placeholder="Enter 4-digit passcode"
-        class="w-full p-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 mb-4 text-center text-lg"
-      />
-      <button 
-        (click)="authorize()" 
-        class="w-full bg-blue-500 text-white p-3 rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500">
-        Submit
-      </button>
-      <div *ngIf="passcode && passcode.length === 4 && passcode !== '1234'" class="text-red-500 text-sm text-center mt-2">
-        Incorrect passcode!
+<section
+  class="fixed inset-0 z-50 flex min-h-svh items-center justify-center overflow-y-auto bg-ink-950 px-4 py-12"
+>
+  <!-- ambient background -->
+  <div class="pointer-events-none absolute inset-0 overflow-hidden">
+    <div class="glow-orb -top-32 left-1/2 h-80 w-80 -translate-x-1/2 bg-accent-500/25"></div>
+    <div class="glow-orb bottom-0 right-0 h-72 w-72 bg-violet-500/15"></div>
+    <div class="absolute inset-0 bg-hero-grid opacity-[0.35] [mask-image:radial-gradient(ellipse_at_center,black,transparent_72%)]"></div>
+  </div>
+
+  <div class="relative w-full max-w-sm">
+    <a
+      routerLink="/home"
+      class="mb-7 flex items-center justify-center gap-2 text-xs text-slate-500 transition hover:text-slate-300"
+    >
+      <app-icon name="arrow-right" [size]="13" class="rotate-180" />
+      Back to home
+    </a>
+
+    <div class="animate-scale-in">
+      <div class="card p-7" [class.animate-shake]="shake()">
+        <img
+          src="brand/voiceout.png"
+          alt="VoiceOut"
+          class="mx-auto h-10 w-auto drop-shadow-[0_8px_24px_rgba(200,162,58,0.25)]"
+        />
+
+        <h1 class="mt-5 text-center font-display text-xl font-semibold">Enter passcode</h1>
+        <p class="mt-1.5 text-center text-xs leading-relaxed text-slate-400">
+          This wall is protected. Enter the passcode to step inside.
+        </p>
+
+        <form class="mt-6" (ngSubmit)="authorize()">
+          <div class="relative">
+            <input
+              name="passcode"
+              [type]="reveal() ? 'text' : 'password'"
+              [(ngModel)]="passcode"
+              (ngModelChange)="onInput()"
+              maxlength="8"
+              inputmode="numeric"
+              autocomplete="off"
+              placeholder="••••••••"
+              aria-label="Passcode"
+              class="field !py-3.5 pr-12 text-center text-lg tracking-[0.45em] placeholder:tracking-[0.35em] placeholder:text-slate-600"
+            />
+            <button
+              type="button"
+              class="absolute right-2 top-1/2 grid h-8 w-8 -translate-y-1/2 place-items-center rounded-lg text-slate-500 transition hover:bg-white/5 hover:text-slate-200"
+              (click)="toggleReveal()"
+              [attr.aria-label]="reveal() ? 'Hide passcode' : 'Show passcode'"
+            >
+              <app-icon [name]="reveal() ? 'eye-off' : 'eye'" [size]="16" />
+            </button>
+          </div>
+
+          @if (error()) {
+            <p class="mt-2.5 flex animate-fade-in items-center gap-1.5 text-xs text-rose-300">
+              <app-icon name="alert" [size]="13" />
+              Incorrect passcode. Try again.
+            </p>
+          }
+
+          <button
+            type="submit"
+            class="btn-primary mt-5 w-full !py-3"
+            [disabled]="!passcode"
+          >
+            <app-icon name="lock" [size]="16" />
+            Unlock the wall
+          </button>
+        </form>
+
+        <div class="divider my-5"></div>
+
+        <p class="flex items-center justify-center gap-1.5 text-center text-[11px] text-slate-500">
+          <app-icon name="shield" [size]="12" />
+          Access is invite-only. Ask the creator for the code.
+        </p>
       </div>
     </div>
   </div>
-  
+</section>

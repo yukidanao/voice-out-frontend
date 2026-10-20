@@ -1,63 +1,104 @@
-<div class="p-4 sm:ml-64">
-    <div class="text-center animate-fade-down">
-        <p class="font-bold text-4xl text-white">Interested in the application?</p>
+<section class="page-shell-wide">
+  <header class="max-w-3xl animate-fade-up">
+    <span class="eyebrow">
+      <app-icon name="info" [size]="12" />
+      About
+    </span>
+    <h1 class="mt-4 font-display text-3xl font-bold tracking-tight sm:text-[2.6rem] sm:leading-[1.1]">
+      Curious how this
+      <span class="text-gradient">little wall</span> works?
+    </h1>
+    <p class="mt-4 text-sm leading-relaxed text-slate-400">
+      VoiceOut is a small side project with a simple goal: give people a place to be honest
+      without being seen. Here's what it's made of.
+    </p>
+  </header>
+
+  <div class="card mt-10 animate-fade-up p-5 sm:p-6">
+    <p class="text-[10px] font-semibold uppercase tracking-[0.22em] text-slate-500">
+      Principles
+    </p>
+    <ul class="mt-6 grid gap-6 sm:grid-cols-3">
+      <li class="flex items-start gap-3">
+        <span class="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-emerald-500/10 text-emerald-300">
+          <app-icon name="shield" [size]="15" />
+        </span>
+        <div>
+          <p class="text-[13px] font-medium text-slate-200">Anonymous by default</p>
+          <p class="mt-0.5 text-xs leading-relaxed text-slate-500">
+            No names, no profiles, no tracking of who said what.
+          </p>
+        </div>
+      </li>
+      <li class="flex items-start gap-3">
+        <span class="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-rose-500/10 text-rose-300">
+          <app-icon name="heart" [size]="15" />
+        </span>
+        <div>
+          <p class="text-[13px] font-medium text-slate-200">Kind by design</p>
+          <p class="mt-0.5 text-xs leading-relaxed text-slate-500">
+            Negative posts are removed to keep the wall a safe place.
+          </p>
+        </div>
+      </li>
+      <li class="flex items-start gap-3">
+        <span class="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-amber-400/10 text-amber-300">
+          <app-icon name="zap" [size]="15" />
+        </span>
+        <div>
+          <p class="text-[13px] font-medium text-slate-200">Real-time, always</p>
+          <p class="mt-0.5 text-xs leading-relaxed text-slate-500">
+            New voices appear the moment they're posted. No refresh needed.
+          </p>
+        </div>
+      </li>
+    </ul>
+  </div>
+
+  <div class="mt-10">
+    <div class="flex items-center justify-between">
+      <h2 class="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-500">
+        The stack
+      </h2>
+      <span class="text-[11px] text-slate-600">{{ stack.length }} technologies</span>
     </div>
 
-    <div class="p-5 animate-fade-right animate-delay-500">
-        <p class="text-2xl text-white">Why was this app developed?</p>
-        <p class="text-white text-base font-bold">HOY <span class="text-red-500">FREDERICK SANCHEZ ANICAS</span> BAKIT MO KASI NILAGYAN NG PIN YUNG GINAWA MONG GANITO!!!!!!!!!!!11111!!111</p>
+    <div class="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+      @for (item of stack; track item.name; let i = $index) {
+        <div
+          class="card card-interactive tint-card animate-fade-up p-4"
+          [style.--tint]="item.hue"
+          [style.animation-delay.ms]="120 + i * 60"
+        >
+          <div class="flex items-center gap-3">
+            <span
+              class="logo-tile grid h-11 w-11 shrink-0 place-items-center overflow-hidden rounded-xl bg-white p-0.5 shadow-sm"
+            >
+              <img
+                [src]="item.logo"
+                [alt]="item.name + ' logo'"
+                loading="lazy"
+                class="h-full w-full object-cover"
+              />
+            </span>
+            <h3 class="text-sm font-semibold">{{ item.name }}</h3>
+          </div>
+          <p class="mt-3 text-[12.5px] leading-relaxed text-slate-400">{{ item.text }}</p>
+        </div>
+      }
     </div>
 
-    <p class="text-base text-white p-5 animate-flip-up animate-delay-[700ms]">See the technologies the app used.</p>
-
-    <div class="px-5 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-        <a class="animate-flip-up animate-delay-[900ms] flex flex-col items-center bg-white border border-gray-200 rounded-lg shadow hover:bg-gray-100 dark:border-gray-700 dark:bg-gray-800 dark:hover:bg-gray-700">
-            <img class="object-cover w-full rounded-t-lg h-48 md:h-auto md:w-32 md:rounded-none md:rounded-s-lg" src="mongodb.png" alt="">
-            <div class="flex flex-col justify-between p-4 leading-normal">
-                <h5 class="mb-2 text-xl font-bold tracking-tight text-gray-900 dark:text-white">MongoDB</h5>
-                <p class="mb-3 font-normal text-gray-700 dark:text-gray-400">A NoSQL document database that stores data in JSON-like format. It’s designed for scalability and flexibility, allowing developers to handle structured and unstructured data efficiently.</p>
-            </div>
-        </a>
-        
-        <a class="animate-flip-up animate-delay-[1100ms] flex flex-col items-center bg-white border border-gray-200 rounded-lg shadow hover:bg-gray-100 dark:border-gray-700 dark:bg-gray-800 dark:hover:bg-gray-700">
-            <img class="object-cover w-full rounded-t-lg h-48 md:h-auto md:w-32 md:rounded-none md:rounded-s-lg" src="expressjs.png" alt="">
-            <div class="flex flex-col justify-between p-4 leading-normal">
-                <h5 class="mb-2 text-xl font-bold tracking-tight text-gray-900 dark:text-white">Express.js</h5>
-                <p class="mb-3 font-normal text-gray-700 dark:text-gray-400">A minimal and flexible Node.js web application framework that provides a robust set of features for building web and mobile applications. It simplifies routing and middleware management, making it easier to develop server-side applications.</p>
-            </div>
-        </a>
-
-        <a class="animate-flip-up animate-delay-[1300ms] flex flex-col items-center bg-white border border-gray-200 rounded-lg shadow hover:bg-gray-100 dark:border-gray-700 dark:bg-gray-800 dark:hover:bg-gray-700">
-            <img class="object-cover w-full rounded-t-lg h-48 md:h-auto md:w-32 md:rounded-none md:rounded-s-lg" src="angular.png" alt="">
-            <div class="flex flex-col justify-between p-4 leading-normal">
-                <h5 class="mb-2 text-xl font-bold tracking-tight text-gray-900 dark:text-white">Angular</h5>
-                <p class="mb-3 font-normal text-gray-700 dark:text-gray-400">A platform and framework for building single-page client applications using HTML and TypeScript. Developed by Google, Angular provides a powerful structure for dynamic web apps, featuring two-way data binding, dependency injection, and modular architecture.</p>
-            </div>
-        </a>
-
-        <a class="animate-flip-up animate-delay-[1500ms] flex flex-col items-center bg-white border border-gray-200 rounded-lg shadow hover:bg-gray-100 dark:border-gray-700 dark:bg-gray-800 dark:hover:bg-gray-700">
-            <img class="object-cover w-full rounded-t-lg h-48 md:h-auto md:w-32 md:rounded-none md:rounded-s-lg" src="node.png" alt="">
-            <div class="flex flex-col justify-between p-4 leading-normal">
-                <h5 class="mb-2 text-xl font-bold tracking-tight text-gray-900 dark:text-white">Node.js</h5>
-                <p class="mb-3 font-normal text-gray-700 dark:text-gray-400">A JavaScript runtime built on Chrome's V8 engine that allows developers to execute JavaScript on the server side. It enables building scalable network applications, leveraging an event-driven, non-blocking I/O model for high performance.</p>
-            </div>
-        </a>
-
-        <a class="animate-flip-up animate-delay-[1700ms] flex flex-col items-center bg-white border border-gray-200 rounded-lg shadow hover:bg-gray-100 dark:border-gray-700 dark:bg-gray-800 dark:hover:bg-gray-700">
-            <img class="object-cover w-full rounded-t-lg h-48 md:h-auto md:w-32 md:rounded-none md:rounded-s-lg" src="websocket.png" alt="">
-            <div class="flex flex-col justify-between p-4 leading-normal">
-                <h5 class="mb-2 text-xl font-bold tracking-tight text-gray-900 dark:text-white">Websocket</h5>
-                <p class="mb-3 font-normal text-gray-700 dark:text-gray-400">A communication protocol that enables full-duplex, bidirectional communication channels over a single TCP connection. It allows real-time data exchange between a client and server, making it ideal for applications like chat apps, live notifications, and online gaming, where low latency and immediate interaction are crucial. WebSockets maintain an open connection, reducing the overhead of traditional HTTP requests.</p>
-            </div>
-        </a>
-
-        <a class="animate-flip-up animate-delay-[1900ms] flex flex-col items-center bg-white border border-gray-200 rounded-lg shadow hover:bg-gray-100 dark:border-gray-700 dark:bg-gray-800 dark:hover:bg-gray-700">
-            <img class="object-cover w-full rounded-t-lg h-48 md:h-auto md:w-32 md:rounded-none md:rounded-s-lg" src="tailwindcss.png" alt="">
-            <div class="flex flex-col justify-between p-4 leading-normal">
-                <h5 class="mb-2 text-xl font-bold tracking-tight text-gray-900 dark:text-white">TailwindCSS</h5>
-                <p class="mb-3 font-normal text-gray-700 dark:text-gray-400">A utility-first CSS framework that allows developers to build custom designs directly in their markup. It provides a set of pre-defined classes for styling elements, promoting a faster and more consistent design process without leaving the HTML.</p>
-            </div>
-        </a>
-        
+    <div
+      class="card mt-4 flex animate-fade-up flex-col gap-3 p-5 [animation-delay:500ms] sm:flex-row sm:items-center sm:justify-between"
+    >
+      <div>
+        <p class="text-sm font-semibold text-white">Got an idea?</p>
+        <p class="mt-0.5 text-xs text-slate-400">Tell me what to build next.</p>
+      </div>
+      <a routerLink="/feedback" class="btn-ghost shrink-0">
+        Send feedback
+        <app-icon name="arrow-right" [size]="15" />
+      </a>
     </div>
-</div>
+  </div>
+</section>

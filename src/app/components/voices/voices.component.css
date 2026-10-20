@@ -1,29 +1,36 @@
-@keyframes fade-in {
-    0% {
-      opacity: 0;
-      transform: translateY(-10px);
-    }
-    100% {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-  
-  @keyframes fade-out {
-    0% {
-      opacity: 1;
-      transform: translateY(0);
-    }
-    100% {
-      opacity: 0;
-      transform: translateY(10px);
-    }
-  }
-  
-  .toast {
-    animation: fade-in 0.5s forwards;
-  }
-  
-  .toast.fade-out {
-    animation: fade-out 0.5s forwards;
-  }
+/* Each note gets a stable, randomly assigned accent tint. */
+.card.voice-card {
+  border-color: hsl(var(--tint, 220) 72% 62% / 0.18);
+  background:
+    radial-gradient(130% 120% at 0% 0%, hsl(var(--tint, 220) 80% 62% / 0.11), transparent 58%),
+    linear-gradient(160deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.012));
+}
+
+.card.voice-card::after {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 2px;
+  background: linear-gradient(
+    90deg,
+    hsl(var(--tint, 220) 85% 66% / 0.7),
+    hsl(var(--tint, 220) 85% 66% / 0)
+  );
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+.card.voice-card:hover {
+  border-color: hsl(var(--tint, 220) 80% 66% / 0.32);
+  box-shadow: 0 26px 58px -34px hsl(var(--tint, 220) 85% 55% / 0.85);
+}
+
+.voice-card .avatar {
+  background: linear-gradient(
+    135deg,
+    hsl(var(--tint, 220) 80% 60% / 0.32),
+    hsl(var(--tint, 220) 80% 55% / 0.1)
+  );
+  color: hsl(var(--tint, 220) 88% 80%);
+  box-shadow: inset 0 0 0 1px hsl(var(--tint, 220) 85% 70% / 0.28);
+}

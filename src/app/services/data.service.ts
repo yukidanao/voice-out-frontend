@@ -49,7 +49,7 @@ export class DataService {
   initWebSocket(): void {
     if (isPlatformBrowser(this.platformId)) {
       // Check if we're in the browser
-      this.socket = new WebSocket('wss://voiceout-app-backend-wpfp.onrender.com/api');
+      this.socket = new WebSocket('https://voiceout-backend-1l8k.onrender.com');
 
       this.socket.onmessage = (event) => {
         const message = JSON.parse(event.data);

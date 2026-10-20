@@ -1,74 +1,115 @@
-<button data-drawer-target="default-sidebar" data-drawer-toggle="default-sidebar" aria-controls="default-sidebar" type="button" class="inline-flex items-center p-2 mt-2 ms-3 text-sm text-gray-500 rounded-lg custom-lg:hidden hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:text-gray-400 dark:hover:bg-gray-700 dark:focus:ring-gray-600">
-    <span class="sr-only">Open sidebar</span>
-    <svg class="w-6 h-6" aria-hidden="true" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-    <path clip-rule="evenodd" fill-rule="evenodd" d="M2 4.75A.75.75 0 012.75 4h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 4.75zm0 10.5a.75.75 0 01.75-.75h7.5a.75.75 0 010 1.5h-7.5a.75.75 0 01-.75-.75zM2 10a.75.75 0 01.75-.75h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 10z"></path>
-    </svg>
- </button>
- 
- <aside id="default-sidebar" class="fixed top-0 left-0 z-40 w-64 h-screen transition-transform -translate-x-full custom-lg:translate-x-0" aria-label="Sidebar">
-    <div class="h-full px-3 py-4 overflow-y-auto bg-gray-50 dark:bg-gray-800">
-       <ul class="space-y-2 font-medium">
-         <li>
-            <a routerLinkActive="bg-gray-700" routerLink="/home" class="flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group">
-               <svg class="w-5 h-5 text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 22 21">
-                     <path fill-rule="evenodd" d="M11.293 3.293a1 1 0 0 1 1.414 0l6 6 2 2a1 1 0 0 1-1.414 1.414L19 12.414V19a2 2 0 0 1-2 2h-3a1 1 0 0 1-1-1v-3h-2v3a1 1 0 0 1-1 1H7a2 2 0 0 1-2-2v-6.586l-.293.293a1 1 0 0 1-1.414-1.414l2-2 6-6Z" clip-rule="evenodd"/>                   
-               </svg>
-               <span class="ms-3">Home</span>
-            </a>
-         </li>
-          <li>
-             <a routerLinkActive="bg-gray-700" routerLink="/voices" class="flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group">
-                <svg class="w-5 h-5 text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 22 21">
-                   <path d="M16.975 11H10V4.025a1 1 0 0 0-1.066-.998 8.5 8.5 0 1 0 9.039 9.039.999.999 0 0 0-1-1.066h.002Z"/>
-                   <path d="M12.5 0c-.157 0-.311.01-.565.027A1 1 0 0 0 11 1.02V10h8.975a1 1 0 0 0 1-.935c.013-.188.028-.374.028-.565A8.51 8.51 0 0 0 12.5 0Z"/>
-                </svg>
-                <span class="ms-3">Voices</span>
-             </a>
-          </li>
-          <li>
-            <a (click)="openDialog()" class="cursor-pointer flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group">
-               <svg class="w-5 h-5 text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 22 21">
-                     <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.779 17.779 4.36 19.918 6.5 13.5m4.279 4.279 8.364-8.643a3.027 3.027 0 0 0-2.14-5.165 3.03 3.03 0 0 0-2.14.886L6.5 13.5m4.279 4.279L6.499 13.5m2.14 2.14 6.213-6.504M12.75 7.04 17 11.28"/>                   
-               </svg>
-               <span class="ms-3">Write</span>
-            </a>
-         </li>
-         <li>
-            <a routerLinkActive="bg-gray-700" routerLink="/feedback" class="flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group">
-               <svg class="w-5 h-5 text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 22 21">
-                     <path d="m3.62 6.389 8.396 6.724 8.638-6.572-7.69-4.29a1.975 1.975 0 0 0-1.928 0L3.62 6.39Z"/>
-                     <path d="m22 8.053-8.784 6.683a1.978 1.978 0 0 1-2.44-.031L2.02 7.693a1.091 1.091 0 0 0-.019.199v11.065C2 20.637 3.343 22 5 22h14c1.657 0 3-1.362 3-3.043V8.053Z"/>                   
-               </svg>
-               <span class="ms-3">Feedback</span>
-            </a>
-         </li>
-         <div
-         class="card bg-white border border-gray-200 rounded-lg shadow dark:bg-gray-800 dark:border-gray-700"
-       >
-         <div class="card-content p-5">
-           <p class="mb-3 font-normal font-bold text-gray-700 dark:text-white">
-             <span class="text-red-500 font-bold">Creator's Note:</span> Write what you feel anonymously. Be careful on the things you post, thanks!
-           </p>       
-         </div>
-       </div>
-       </ul>
-    </div>
- </aside>
+<aside
+  class="fixed inset-y-0 left-0 z-40 hidden w-[268px] flex-col border-r border-white/[0.06] bg-ink-900/60 px-4 py-6 backdrop-blur-2xl lg:flex"
+  aria-label="Sidebar"
+>
+  <a routerLink="/home" class="flex flex-col gap-2 px-2" aria-label="VoiceOut home">
+    <img src="brand/voiceout.png" alt="VoiceOut" class="h-9 w-auto self-start" />
+    <span class="text-[10px] font-medium uppercase tracking-[0.22em] text-slate-500">
+      Anonymous wall
+    </span>
+  </a>
 
- <div class="fixed z-50 w-full h-16 max-w-lg -translate-x-1/2 bottom-2 left-1/2 md:hidden">
-   <div class="grid h-full max-w-lg grid-cols-5 mx-auto">
-       <div class="flex items-center justify-center">
-           <button (click)="openDialog()" data-tooltip-target="tooltip-new" type="button" class="inline-flex items-center justify-center w-10 h-10 font-medium bg-gray-600 rounded-full hover:bg-blue-700 group focus:ring-4 focus:ring-blue-300 focus:outline-none dark:focus:ring-blue-800">
-            <svg class="w-4 h-4 text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-               <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 21h3.75L19.75 8.25a1 1 0 0 0 0-1.414l-2.586-2.586a1 1 0 0 0-1.414 0L3 16.75V21zM14.25 6.25l3.5 3.5"/>
-           </svg>
-           
-               <span class="sr-only">New item</span>
-           </button>
-       </div>
-       <div id="tooltip-new" role="tooltip" class="absolute z-10 invisible inline-block px-3 py-2 text-sm font-medium text-white transition-opacity duration-300 bg-gray-900 rounded-lg shadow-sm opacity-0 tooltip dark:bg-gray-700">
-           Write a thought...
-           <div class="tooltip-arrow" data-popper-arrow></div>
-       </div>
-   </div>
-</div>
+  <button type="button" class="btn-primary mt-7 w-full" (click)="openWrite()">
+    <app-icon name="pen" [size]="17" />
+    Write a note
+  </button>
+
+  <nav class="mt-8 space-y-1" aria-label="Main navigation">
+    <p class="px-3 pb-2 text-[10px] font-semibold uppercase tracking-[0.22em] text-slate-600">Menu</p>
+
+    @for (item of nav; track item.route) {
+      <a
+        [routerLink]="item.route"
+        routerLinkActive="is-active"
+        class="nav-link group"
+      >
+        <app-icon [name]="item.icon" [size]="18" />
+        <span>{{ item.label }}</span>
+        <app-icon
+          name="chevron-right"
+          [size]="14"
+          class="ml-auto opacity-0 transition-opacity duration-300 group-hover:opacity-50"
+        />
+      </a>
+    }
+  </nav>
+
+  <div class="mt-auto space-y-4 pt-8">
+    <div class="card p-4">
+      <div class="flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-500">
+        <span class="live-dot"></span>
+        Creator's note
+      </div>
+      <p class="mt-2.5 text-[12.5px] leading-relaxed text-slate-300">
+        Write what you feel — anonymously. Be kind with what you share; all negative posts are removed.
+      </p>
+      <p class="mt-3 inline-flex items-center gap-1.5 text-[11px] text-slate-500">
+        <app-icon name="heart" [size]="12" class="text-rose-400/80" />
+        made with care
+      </p>
+    </div>
+    <p class="px-2 text-[10.5px] text-slate-600">© {{ year }} VoiceOut</p>
+  </div>
+</aside>
+
+<!-- Mobile top bar -->
+<header
+  class="fixed inset-x-0 top-0 z-40 border-b border-white/[0.06] bg-ink-950/70 backdrop-blur-2xl lg:hidden"
+>
+  <div class="flex h-16 items-center justify-between px-4">
+    <a routerLink="/home" class="flex items-center gap-2.5" aria-label="VoiceOut home">
+      <img src="brand/voiceout.png" alt="VoiceOut" class="h-7 w-auto" />
+    </a>
+
+    <div class="flex items-center gap-2">
+      <span class="eyebrow !px-2.5 !py-1 !tracking-normal !normal-case">
+        <span class="live-dot"></span>
+        Live
+      </span>
+      <button
+        type="button"
+        class="btn-icon !h-9 !w-9"
+        (click)="openWrite()"
+        aria-label="Write a note"
+      >
+        <app-icon name="pen" [size]="16" />
+      </button>
+    </div>
+  </div>
+</header>
+
+<!-- Mobile bottom navigation -->
+<nav class="fixed inset-x-0 bottom-0 z-40 lg:hidden" aria-label="Mobile navigation">
+  <div class="mx-auto max-w-md px-3 pb-[max(0.6rem,env(safe-area-inset-bottom))]">
+    <div
+      class="flex items-end justify-between gap-1 rounded-2xl border border-white/10 bg-ink-900/90 px-2 py-2 shadow-2xl backdrop-blur-2xl"
+    >
+      <a routerLink="/home" routerLinkActive="is-active" class="mobile-nav-link">
+        <app-icon name="home" [size]="19" />
+        <span>Home</span>
+      </a>
+      <a routerLink="/voices" routerLinkActive="is-active" class="mobile-nav-link">
+        <app-icon name="waveform" [size]="19" />
+        <span>Voices</span>
+      </a>
+
+      <button
+        type="button"
+        class="-mt-7 grid h-14 w-14 shrink-0 place-items-center rounded-2xl bg-gradient-to-br from-accent-500 to-violet-500 text-white shadow-glow ring-4 ring-ink-950/80 transition duration-300 ease-spring hover:brightness-110 active:scale-95"
+        (click)="openWrite()"
+        aria-label="Write a note"
+      >
+        <app-icon name="plus" [size]="22" />
+      </button>
+
+      <a routerLink="/feedback" routerLinkActive="is-active" class="mobile-nav-link">
+        <app-icon name="mail" [size]="19" />
+        <span>Feedback</span>
+      </a>
+      <a routerLink="/about" routerLinkActive="is-active" class="mobile-nav-link">
+        <app-icon name="info" [size]="19" />
+        <span>About</span>
+      </a>
+    </div>
+  </div>
+</nav>

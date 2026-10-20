@@ -1,0 +1,72 @@
+<div class="player">
+  <button
+    type="button"
+    class="play"
+    [class.is-playing]="playing()"
+    (click)="toggle()"
+    [attr.aria-label]="playing() ? 'Pause voice note' : 'Play voice note'"
+  >
+    @if (buffering()) {
+      <span class="spin"><app-icon name="loader" [size]="18" /></span>
+    } @else if (playing()) {
+      <app-icon name="pause" [size]="18" />
+    } @else {
+      <app-icon name="play" [size]="18" />
+    }
+  </button>
+
+  <div class="min-w-0 flex-1">
+    <div class="meta">
+      <span class="label">
+        <app-icon name="waveform" [size]="12" />
+        {{ title }}
+      </span>
+      <span class="time">
+        {{ format(currentTime()) }}<span class="sep">/</span>{{ format(duration()) }}
+      </span>
+    </div>
+
+    <div
+      class="wave"
+      role="slider"
+      tabindex="0"
+      aria-label="Seek voice note"
+      [attr.aria-valuemin]="0"
+      [attr.aria-valuemax]="duration()"
+      [attr.aria-valuenow]="currentTime()"
+      [attr.aria-valuetext]="format(currentTime()) + ' of ' + format(duration())"
+      (pointerdown)="startSeek($event)"
+      (pointermove)="moveSeek($event)"
+      (pointerup)="endSeek($event)"
+      (pointercancel)="endSeek($event)"
+      (keydown)="onKeydown($event)"
+    >
+      @for (bar of bars(); track $index) {
+        <span
+          class="bar"
+          [class.played]="$index / bars().length < progress"
+          [style.height.%]="bar"
+        ></span>
+      }
+    </div>
+  </div>
+
+  <div class="controls">
+    <button
+      type="button"
+      class="mini"
+      (click)="cycleRate()"
+      [attr.aria-label]="'Playback speed ' + rate() + ' times'"
+    >
+      {{ rate() }}×
+    </button>
+    <button
+      type="button"
+      class="mini icon"
+      (click)="toggleMute()"
+      [attr.aria-label]="muted() ? 'Unmute voice note' : 'Mute voice note'"
+    >
+      <app-icon [name]="muted() ? 'volume-off' : 'volume'" [size]="14" />
+    </button>
+  </div>
+</div>

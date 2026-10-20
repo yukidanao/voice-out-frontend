@@ -1,2 +1,10 @@
-<app-sidebar></app-sidebar>
-<router-outlet></router-outlet>
+<app-sidebar />
+
+<div class="min-h-screen lg:pl-[268px]">
+  <main class="relative min-h-screen">
+    <router-outlet />
+  </main>
+</div>
+
+<app-toast />
+<app-write-dialog />

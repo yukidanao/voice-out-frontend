@@ -1,31 +1,41 @@
-import { Component } from '@angular/core';
-import { Router } from '@angular/router';
+import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { NgIf } from '@angular/common';
-import {MatSnackBar} from '@angular/material/snack-bar';
+import { Router, RouterLink } from '@angular/router';
+import { IconComponent } from '../ui/icon/icon.component';
 
 @Component({
   selector: 'app-authorize',
   standalone: true,
-  imports: [FormsModule, NgIf],
+  imports: [FormsModule, RouterLink, IconComponent],
   templateUrl: './authorize.component.html',
-  styleUrl: './authorize.component.css'
+  styleUrl: './authorize.component.css',
 })
 export class AuthorizeComponent {
-  passcode: string = '';
-  private correctPasscode: string = '13262201'; 
+  private readonly router = inject(Router);
+  private readonly correctPasscode = '13262201';
 
-  constructor(private router: Router, private snackBar: MatSnackBar) {}
+  passcode = '';
+  readonly reveal = signal(false);
+  readonly error = signal(false);
+  readonly shake = signal(false);
 
-  authorize() {
-    if (this.passcode === this.correctPasscode) {
+  authorize(): void {
+    if (this.passcode.trim() === this.correctPasscode) {
       localStorage.setItem('authorized', 'true');
       this.router.navigate(['/voices']);
-    } else {
-      this.snackBar.open('Incorrect passcode!', 'Close', {
-        duration: 3000,
-        panelClass: ['error-snackbar'],
-      });
+      return;
     }
+
+    this.error.set(true);
+    this.shake.set(true);
+    window.setTimeout(() => this.shake.set(false), 550);
+  }
+
+  onInput(): void {
+    this.error.set(false);
+  }
+
+  toggleReveal(): void {
+    this.reveal.update((value) => !value);
   }
 }

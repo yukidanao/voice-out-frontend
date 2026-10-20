@@ -1,0 +1,31 @@
+/* Stack cards each get their own tint, derived from the technology name. */
+.card.tint-card {
+  border-color: hsl(var(--tint, 220) 72% 62% / 0.24);
+  background:
+    radial-gradient(120% 150% at 0% 0%, hsl(var(--tint, 220) 78% 62% / 0.18), transparent 62%),
+    linear-gradient(160deg, rgba(255, 255, 255, 0.032), rgba(255, 255, 255, 0.01));
+}
+
+.card.tint-card::after {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 2px;
+  background: linear-gradient(
+    90deg,
+    hsl(var(--tint, 220) 85% 66% / 0.85),
+    hsl(var(--tint, 220) 85% 66% / 0)
+  );
+  opacity: 0.75;
+  pointer-events: none;
+}
+
+.card.tint-card:hover {
+  border-color: hsl(var(--tint, 220) 80% 66% / 0.36);
+  box-shadow: 0 22px 52px -30px hsl(var(--tint, 220) 85% 55% / 0.8);
+}
+
+.card.tint-card .logo-tile {
+  border: 1px solid hsl(var(--tint, 220) 80% 66% / 0.3);
+  box-shadow: 0 10px 24px -16px hsl(var(--tint, 220) 85% 60% / 0.95);
+}

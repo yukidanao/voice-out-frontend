@@ -1,53 +1,158 @@
-<div class="p-4 sm:ml-64">
-    <div class="p-4 rounded-lg dark:border-gray-700 mt-14">
+<section class="page-shell-wide">
+  <div class="grid gap-10 lg:grid-cols-[0.9fr_1.1fr] lg:gap-16">
+    <div class="animate-fade-up">
+      <span class="eyebrow">
+        <app-icon name="mail" [size]="12" />
+        Feedback
+      </span>
 
-        <section class="bg-white dark:bg-gray-950 animate-fade-right animate-delay-300">
-            <div class="py-8 lg:py-16 px-4 mx-auto max-w-screen-md">
-                <h2 class="mb-4 text-4xl tracking-tight font-extrabold text-center text-gray-900 dark:text-white">Feedback</h2>
-                <p class="mb-8 lg:mb-16 font-light text-center text-gray-500 dark:text-gray-400 sm:text-xl">Suggestions on Voice Out? Hit me up!</p>
-                <form (ngSubmit)="onSubmit(contactForm)" #contactForm="ngForm" class="space-y-8">
-                    <div>
-                        <label for="email" class="block mb-2 text-sm font-medium text-gray-900 dark:text-gray-300">Your email</label>
-                        <input type="email" id="email" name="email" ngModel class="shadow-sm bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500 dark:shadow-sm-light" placeholder="company/client@email.com" required>
-                    </div>
-                    <div>
-                        <label for="subject" class="block mb-2 text-sm font-medium text-gray-900 dark:text-gray-300">Subject</label>
-                        <input type="text" id="subject" name="subject" ngModel class="block p-3 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 shadow-sm focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500 dark:shadow-sm-light" placeholder="Let me know how I can help you" required>
-                    </div>
-                    <div class="sm:col-span-2">
-                        <label for="feedback" class="block mb-2 text-sm font-medium text-gray-900 dark:text-gray-400">Your message</label>
-                        <textarea id="feedback" name="feedback" ngModel rows="6" class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg shadow-sm border border-gray-300 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500" placeholder="Send me details of your inquiry (optional)"></textarea>
-                    </div>
-                    <button type="submit" [disabled]="isLoading" class="py-3 px-5 text-sm font-medium text-center text-white rounded-lg bg-primary-700 sm:w-fit hover:bg-primary-800 focus:ring-4 focus:outline-none focus:ring-primary-300 dark:bg-primary-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800">Send message</button>
-                </form>                
+      <h1 class="mt-4 font-display text-3xl font-bold tracking-tight sm:text-[2.6rem] sm:leading-[1.1]">
+        Let's make this
+        <span class="text-gradient">better together</span>
+      </h1>
+
+      <p class="mt-4 max-w-md text-sm leading-relaxed text-slate-400">
+        Found a bug, have an idea for the wall, or just want to say hi? Drop a note — it goes
+        straight to the person behind VoiceOut.
+      </p>
+
+      <ul class="mt-8 space-y-3.5">
+        <li class="flex items-start gap-3">
+          <span class="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-accent-500/10 text-accent-300">
+            <app-icon name="sparkles" [size]="15" />
+          </span>
+          <div>
+            <p class="text-[13px] font-medium text-slate-200">Feature ideas</p>
+            <p class="text-xs text-slate-500">Something that would make the wall better.</p>
+          </div>
+        </li>
+        <li class="flex items-start gap-3">
+          <span class="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-amber-400/10 text-amber-300">
+            <app-icon name="alert" [size]="15" />
+          </span>
+          <div>
+            <p class="text-[13px] font-medium text-slate-200">Bug reports</p>
+            <p class="text-xs text-slate-500">Tell me what broke and how it happened.</p>
+          </div>
+        </li>
+        <li class="flex items-start gap-3">
+          <span class="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-rose-500/10 text-rose-300">
+            <app-icon name="heart" [size]="15" />
+          </span>
+          <div>
+            <p class="text-[13px] font-medium text-slate-200">Kind words</p>
+            <p class="text-xs text-slate-500">They genuinely make a difference.</p>
+          </div>
+        </li>
+      </ul>
+
+      <div class="card mt-8 flex items-center gap-3 p-4">
+        <span class="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-emerald-500/10 text-emerald-300">
+          <app-icon name="clock" [size]="16" />
+        </span>
+        <div>
+          <p class="text-[13px] font-medium text-slate-200">Usually replies within a day</p>
+          <p class="text-[11px] text-slate-500">Every message is read by a human.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="card animate-fade-up p-5 [animation-delay:120ms] sm:p-7">
+      @if (submitted()) {
+        <div class="flex flex-col items-center justify-center gap-3 py-12 text-center">
+          <span
+            class="grid h-14 w-14 place-items-center rounded-2xl bg-emerald-500/10 text-emerald-300 ring-1 ring-emerald-400/20"
+          >
+            <app-icon name="check" [size]="24" />
+          </span>
+          <h2 class="font-display text-lg font-semibold">Message received</h2>
+          <p class="max-w-xs text-sm leading-relaxed text-slate-400">
+            Thanks for taking the time. Your note is in good hands.
+          </p>
+          <button type="button" class="btn-ghost mt-3" (click)="submitted.set(false)">
+            Send another message
+          </button>
+        </div>
+      } @else {
+        <div class="flex items-center gap-3">
+          <span class="grid h-10 w-10 place-items-center rounded-xl bg-accent-500/10 text-accent-300">
+            <app-icon name="send" [size]="17" />
+          </span>
+          <div>
+            <h2 class="font-display text-base font-semibold">Send a message</h2>
+            <p class="text-xs text-slate-500">No account needed.</p>
+          </div>
+        </div>
+
+        <div class="divider my-5"></div>
+
+        <form (ngSubmit)="onSubmit(contactForm)" #contactForm="ngForm" class="space-y-5">
+          <div class="grid gap-5 sm:grid-cols-2">
+            <div>
+              <label for="email" class="field-label">
+                <app-icon name="mail" [size]="13" class="text-slate-500" />
+                Your email
+              </label>
+              <input
+                id="email"
+                name="email"
+                type="email"
+                ngModel
+                required
+                autocomplete="email"
+                class="field"
+                placeholder="you@example.com"
+              />
             </div>
-          </section>
 
+            <div>
+              <label for="subject" class="field-label">
+                <app-icon name="pen" [size]="13" class="text-slate-500" />
+                Subject
+              </label>
+              <input
+                id="subject"
+                name="subject"
+                type="text"
+                ngModel
+                required
+                class="field"
+                placeholder="What's this about?"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label for="feedback" class="field-label">
+              <app-icon name="waveform" [size]="13" class="text-slate-500" />
+              Your message
+              <span class="ml-auto text-[11px] font-normal text-slate-500">optional</span>
+            </label>
+            <textarea
+              id="feedback"
+              name="feedback"
+              ngModel
+              rows="5"
+              class="field resize-none"
+              placeholder="Share the details here..."
+            ></textarea>
+          </div>
+
+          <button type="submit" class="btn-primary w-full !py-3" [disabled]="isLoading()">
+            @if (isLoading()) {
+              <span class="animate-spin"><app-icon name="loader" [size]="16" /></span>
+              Sending...
+            } @else {
+              Send message
+              <app-icon name="send" [size]="16" />
+            }
+          </button>
+
+          <p class="text-center text-[11px] text-slate-500">
+            Your email is only used to reply to you.
+          </p>
+        </form>
+      }
     </div>
-</div>
-
-<div *ngIf="isLoading" class="loading-indicator">
-
   </div>
-
-  <div class="fixed bottom-4 right-4 z-50">
-    <div *ngIf="showToast" id="toast-simple" 
-         [ngClass]="{'fade-up': !isFadingDown, 'fade-down': isFadingDown}"
-         class="flex items-center w-full max-w-xs p-4 space-x-4 rtl:space-x-reverse text-gray-500 bg-white divide-x rtl:divide-x-reverse divide-gray-200 rounded-lg shadow dark:text-gray-400 dark:divide-gray-700 dark:bg-gray-800" 
-         role="alert">
-        <svg class="w-5 h-5 text-blue-600 dark:text-blue-500 rotate-45" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 18 20">
-            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m9 17 8 2L9 1 1 19l8-2Zm0 0V9"/>
-        </svg>
-        <div class="ps-4 text-sm font-normal text-white font-bold">Inquiry sent</div>
-    </div>
-    
-    <div *ngIf="showErrorToast" id="toast-error" 
-         [ngClass]="{'fade-up': !isFadingDown, 'fade-down': isFadingDown}"
-         class="flex items-center w-full max-w-xs p-4 space-x-4 rtl:space-x-reverse text-gray-500 bg-red-500 divide-x rtl:divide-x-reverse divide-gray-200 rounded-lg shadow dark:text-gray-400 dark:bg-red-700" 
-         role="alert">
-        <svg class="w-5 h-5 text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 18 20">
-            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M1 1l16 16M1 17l16-16"/>
-        </svg>
-        <div class="ps-4 text-sm font-normal text-white font-bold">Error sending inquiry</div>
-    </div>
-</div>
+</section>

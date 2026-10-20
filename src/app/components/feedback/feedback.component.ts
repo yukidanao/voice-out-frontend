@@ -1,69 +1,41 @@
-import { Component } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
+import { FormsModule, NgForm } from '@angular/forms';
 import { DataService } from '../../services/data.service';
-import { NgForm } from '@angular/forms';
-import { NgIf, NgClass } from '@angular/common';
-import { FormsModule } from '@angular/forms';
-
+import { ToastService } from '../../services/toast.service';
+import { IconComponent } from '../ui/icon/icon.component';
 
 @Component({
   selector: 'app-feedback',
   standalone: true,
-  imports: [FormsModule, NgIf, NgClass],
+  imports: [FormsModule, IconComponent],
   templateUrl: './feedback.component.html',
-  styleUrl: './feedback.component.css'
+  styleUrl: './feedback.component.css',
 })
 export class FeedbackComponent {
-  showToast = false;
-  showErrorToast = false;
-  isFadingDown = false;
-  isLoading = false;
+  private readonly dataService = inject(DataService);
+  private readonly toast = inject(ToastService);
 
-  constructor(private dataService: DataService) {}
-  onSubmit(form: NgForm) {
-    if (form.valid) {
-      const inquiryData = {
-        email: form.value.email,
-        subject: form.value.subject,
-        feedback: form.value.feedback
-      };
-      this.isLoading = true;
+  readonly isLoading = signal(false);
+  readonly submitted = signal(false);
 
-      this.dataService.postInquiries(inquiryData).subscribe(
-        response => {
-          //console.log('Inquiry submitted successfully:', response);
-          form.reset();
-          this.showToast = true;
-          this.showErrorToast = false;
-          this.isFadingDown = false;
-          
-          setTimeout(() => {
-            this.startFadeDown();
-          }, 3000);
-          this.isLoading = false;
-        },
-        error => {
-          //console.error('Error submitting inquiry:', error);
-          this.isLoading = false;
-          this.showErrorToast = true;
-          this.showToast = false;
-          this.isFadingDown = false;
+  onSubmit(form: NgForm): void {
+    if (!form.valid || this.isLoading()) return;
 
-          setTimeout(() => {
-            this.startFadeDownError();
-            }, 3000);
-        }
-      );
-    }
-  }
-  private startFadeDown() {
-    this.isFadingDown = true;
-    setTimeout(() => {
-        this.showToast = false;
-    }, 500);
-}
-  private startFadeDownError() {
-    setTimeout(() => {
-      this.showErrorToast = false;
-    }, 500);
+    const { email, subject, feedback } = form.value;
+    this.isLoading.set(true);
+
+    this.dataService.postInquiries({ email, subject, feedback }).subscribe({
+      next: () => {
+        this.isLoading.set(false);
+        this.submitted.set(true);
+        form.reset();
+        this.toast.success('Message sent', 'Thanks — I read every single one.');
+        setTimeout(() => this.submitted.set(false), 7000);
+      },
+      error: () => {
+        this.isLoading.set(false);
+        this.toast.error('Could not send', 'Please try again in a moment.');
+      },
+    });
   }
 }

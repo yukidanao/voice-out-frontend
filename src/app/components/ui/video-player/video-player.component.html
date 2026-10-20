@@ -1,0 +1,119 @@
+<div
+  #frame
+  class="frame"
+  tabindex="0"
+  role="group"
+  [attr.aria-label]="label"
+  [style.aspect-ratio]="ratio()"
+  [class.is-fullscreen]="fullscreen()"
+  (pointermove)="showControls()"
+  (pointerleave)="hideControls()"
+  (keydown)="onKeydown($event)"
+  (dblclick)="toggleFullscreen()"
+>
+  <video #video class="media" playsinline preload="metadata" (click)="toggle()"></video>
+
+  <button
+    type="button"
+    class="center"
+    [class.is-hidden]="playing() && !buffering()"
+    (click)="toggle()"
+    [attr.aria-label]="ended ? 'Replay video' : playing() ? 'Pause video' : 'Play video'"
+  >
+    @if (buffering()) {
+      <span class="spin"><app-icon name="loader" [size]="24" /></span>
+    } @else if (!playing()) {
+      <app-icon name="play" [size]="24" />
+    }
+  </button>
+
+  <div class="vignette"></div>
+
+  <div
+    class="bar"
+    [class.is-hidden]="!controlsVisible()"
+    (pointerenter)="holdControls()"
+    (pointerleave)="scheduleHide()"
+  >
+    <div
+      class="seek"
+      role="slider"
+      tabindex="0"
+      aria-label="Seek video"
+      aria-valuemin="0"
+      [attr.aria-valuemax]="duration()"
+      [attr.aria-valuenow]="currentTime()"
+      [attr.aria-valuetext]="format(currentTime()) + ' of ' + format(duration())"
+      (pointerdown)="startSeek($event)"
+      (pointermove)="moveSeek($event)"
+      (pointerup)="endSeek($event)"
+      (pointercancel)="endSeek($event)"
+      (keydown)="onKeydown($event)"
+    >
+      <div class="track">
+        <div class="buffer" [style.width.%]="bufferedPercent"></div>
+        <div class="fill" [style.width.%]="progress"></div>
+      </div>
+      <span class="knob" [style.left.%]="progress"></span>
+    </div>
+
+    <div class="row">
+      <button
+        type="button"
+        class="ctl"
+        (click)="toggle()"
+        [attr.aria-label]="playing() ? 'Pause video' : 'Play video'"
+      >
+        @if (playing()) {
+          <app-icon name="pause" [size]="16" />
+        } @else {
+          <app-icon name="play" [size]="16" />
+        }
+      </button>
+
+      <span class="time tabular-nums">
+        {{ format(currentTime()) }}<span class="sep">/</span>{{ format(duration()) }}
+      </span>
+
+      <span class="spacer"></span>
+
+      <button
+        type="button"
+        class="ctl label"
+        (click)="cycleRate()"
+        [attr.aria-label]="'Playback speed ' + rate() + ' times'"
+      >
+        {{ rate() }}×
+      </button>
+
+      <div class="vol">
+        <button
+          type="button"
+          class="ctl"
+          (click)="toggleMute()"
+          [attr.aria-label]="muted() ? 'Unmute video' : 'Mute video'"
+        >
+          <app-icon [name]="muted() || volume() === 0 ? 'volume-off' : 'volume'" [size]="16" />
+        </button>
+        <input
+          type="range"
+          min="0"
+          max="1"
+          step="0.05"
+          [value]="muted() ? 0 : volume()"
+          (input)="onVolumeInput($event)"
+          aria-label="Volume"
+        />
+      </div>
+
+      <button
+        type="button"
+        class="ctl"
+        (click)="toggleFullscreen()"
+        [attr.aria-label]="fullscreen() ? 'Exit full screen' : 'Enter full screen'"
+      >
+        <app-icon [name]="fullscreen() ? 'compress' : 'expand'" [size]="16" />
+      </button>
+    </div>
+  </div>
+</div>
