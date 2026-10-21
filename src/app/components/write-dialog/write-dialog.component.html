@@ -165,6 +165,122 @@
         </div>
 
         <div class="mt-4">
+          <label for="gif-search" class="field-label">
+            Add a GIF <span class="text-slate-500">(optional)</span>
+          </label>
+
+          @if (selectedGif(); as gif) {
+            <div class="overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03]">
+              <img
+                [src]="gif.gifUrl"
+                [alt]="gif.title"
+                class="max-h-56 w-full object-contain"
+              />
+              <div class="flex items-center justify-between gap-3 border-t border-white/[0.06] px-3 py-2">
+                <a
+                  class="text-[11px] font-medium text-accent-300 transition hover:text-accent-200"
+                  href="https://giphy.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >Powered by GIPHY</a>
+                <button
+                  type="button"
+                  class="btn-icon !h-8 !w-8"
+                  (click)="removeGif()"
+                  aria-label="Remove selected GIF"
+                >
+                  <app-icon name="x" [size]="14" />
+                </button>
+              </div>
+            </div>
+          } @else {
+            <input
+              id="gif-search"
+              type="search"
+              class="field"
+              placeholder="Search GIFs"
+              maxlength="50"
+              [formControl]="gifQuery"
+              autocomplete="off"
+            />
+            <div class="mt-1.5 flex items-center justify-between gap-2">
+              <p class="text-[11px] text-slate-500">Search or browse trending GIFs.</p>
+              <a
+                class="shrink-0 text-[11px] font-medium text-accent-300 transition hover:text-accent-200"
+                href="https://giphy.com"
+                target="_blank"
+                rel="noopener noreferrer"
+              >Powered by GIPHY</a>
+            </div>
+
+            @if (isSearchingGifs()) {
+              <p class="mt-2 text-xs text-slate-400" role="status">Searching GIFs...</p>
+            } @else if (gifSearchError()) {
+              <p class="mt-2 text-xs text-rose-300" role="alert">
+                @if (dataService.hasGiphyApiKey()) {
+                  GIF search is unavailable. Please try again.
+                } @else {
+                  GIF search needs a GIPHY API key. See the README configuration instructions.
+                }
+              </p>
+            } @else if (gifResults().length > 0) {
+              <div class="mt-2 grid max-h-64 grid-cols-3 gap-2 overflow-y-auto rounded-xl">
+                @for (gifResult of gifResults(); track gifResult.id) {
+                  <button
+                    type="button"
+                    class="overflow-hidden rounded-xl border border-white/[0.08] bg-white/[0.03] transition hover:border-accent-400/40"
+                    (click)="selectGif(gifResult)"
+                    [attr.aria-label]="'Select GIF: ' + gifResult.title"
+                  >
+                    <img
+                      [src]="gifResult.previewUrl"
+                      [alt]="gifResult.title"
+                      class="h-24 w-full object-cover"
+                      loading="lazy"
+                    />
+                  </button>
+                }
+              </div>
+            } @else if (gifQuery.value.trim().length >= 2) {
+              <p class="mt-2 text-xs text-slate-400">No GIFs found. Try another search.</p>
+            } @else {
+              <div class="mt-3">
+                <p class="mb-2 text-[11px] font-medium text-slate-400">Trending GIFs</p>
+                @if (isLoadingGifSuggestions()) {
+                  <p class="py-4 text-center text-xs text-slate-500" role="status">Loading GIFs...</p>
+                } @else if (gifSuggestionsError()) {
+                  <p class="py-2 text-xs text-slate-500">
+                    @if (dataService.hasGiphyApiKey()) {
+                      Trending GIFs are unavailable right now.
+                    } @else {
+                      Add a GIPHY API key to enable GIF search and suggestions.
+                    }
+                  </p>
+                } @else {
+                  <div class="grid grid-cols-3 gap-2">
+                    @for (gifSuggestion of gifSuggestions(); track gifSuggestion.id) {
+                      <button
+                        type="button"
+                        class="overflow-hidden rounded-xl border border-white/[0.08] bg-white/[0.03] transition hover:border-accent-400/40"
+                        (click)="selectGif(gifSuggestion)"
+                        [attr.aria-label]="'Select GIF: ' + gifSuggestion.title"
+                      >
+                        <img
+                          [src]="gifSuggestion.previewUrl"
+                          [alt]="gifSuggestion.title"
+                          class="h-24 w-full object-cover"
+                          loading="lazy"
+                        />
+                      </button>
+                    }
+                  </div>
+                }
+              </div>
+            }
+          }
+        </div>
+
+        <div class="mt-4">
           <div class="mb-2 flex items-center justify-between">
             <span class="field-label !mb-0">Attach media <span class="text-slate-500">(optional)</span></span>
             <span class="text-[11px] text-slate-500">Photo · Audio · Video</span>

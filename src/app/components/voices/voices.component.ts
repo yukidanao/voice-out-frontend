@@ -17,9 +17,10 @@ interface Voices {
   _id?: string;
   fileType?: string;
   song?: Song;
+  gifUrl?: string;
 }
 
-type FilterValue = 'all' | 'text' | 'image' | 'audio' | 'video';
+type FilterValue = 'all' | 'text' | 'image' | 'gif' | 'audio' | 'video';
 
 interface VoiceFilter {
   value: FilterValue;
@@ -55,6 +56,7 @@ export class VoicesComponent implements OnInit, OnDestroy {
     { value: 'all', label: 'All', icon: 'sparkles' },
     { value: 'text', label: 'Text', icon: 'pen' },
     { value: 'image', label: 'Photos', icon: 'image' },
+    { value: 'gif', label: 'GIFs', icon: 'image' },
     { value: 'audio', label: 'Audio', icon: 'waveform' },
     { value: 'video', label: 'Video', icon: 'video' },
   ];
@@ -62,8 +64,11 @@ export class VoicesComponent implements OnInit, OnDestroy {
   get filteredVoices(): Voices[] {
     if (this.activeFilter === 'all') return this.voices;
     if (this.activeFilter === 'text') {
-      return this.voices.filter((voice) => !voice.file || voice.fileType === 'unknown');
+      return this.voices.filter(
+        (voice) => !voice.gifUrl && (!voice.file || voice.fileType === 'unknown'),
+      );
     }
+    if (this.activeFilter === 'gif') return this.voices.filter((voice) => !!voice.gifUrl);
     return this.voices.filter((voice) => voice.fileType === this.activeFilter);
   }
 
@@ -130,8 +135,11 @@ export class VoicesComponent implements OnInit, OnDestroy {
   countFor(filter: FilterValue): number {
     if (filter === 'all') return this.voices.length;
     if (filter === 'text') {
-      return this.voices.filter((voice) => !voice.file || voice.fileType === 'unknown').length;
+      return this.voices.filter(
+        (voice) => !voice.gifUrl && (!voice.file || voice.fileType === 'unknown'),
+      ).length;
     }
+    if (filter === 'gif') return this.voices.filter((voice) => !!voice.gifUrl).length;
     return this.voices.filter((voice) => voice.fileType === filter).length;
   }
 

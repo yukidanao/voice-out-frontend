@@ -11,7 +11,7 @@ import {
   signal,
 } from '@angular/core';
 import { FormBuilder, FormControl, ReactiveFormsModule } from '@angular/forms';
-import { DataService, Song } from '../../services/data.service';
+import { DataService, GiphyGif, Song } from '../../services/data.service';
 import { ToastService } from '../../services/toast.service';
 import { DialogService } from '../../services/dialog.service';
 import { AudioPlayerComponent } from '../ui/audio-player/audio-player.component';
@@ -30,19 +30,21 @@ type FileKind = 'image' | 'audio' | 'video' | 'file';
 })
 export class WriteDialogComponent implements OnDestroy {
   private readonly fb = inject(FormBuilder);
-  private readonly dataService = inject(DataService);
+  readonly dataService = inject(DataService);
   private readonly toast = inject(ToastService);
   private readonly platformId = inject(PLATFORM_ID);
   readonly dialog = inject(DialogService);
 
   @ViewChild('textarea') private textarea?: ElementRef<HTMLTextAreaElement>;
   private readonly searchSubscription: Subscription;
+  private readonly gifSearchSubscription: Subscription;
 
   readonly form = this.fb.group({
     thoughtText: [''],
     file: [null as File | null],
   });
   readonly songQuery = new FormControl('', { nonNullable: true });
+  readonly gifQuery = new FormControl('', { nonNullable: true });
 
   readonly isLoading = signal(false);
   readonly dragActive = signal(false);
@@ -54,6 +56,13 @@ export class WriteDialogComponent implements OnDestroy {
   readonly isSearchingSongs = signal(false);
   readonly isLoadingSuggestions = signal(false);
   readonly songSearchError = signal(false);
+  readonly selectedGif = signal<GiphyGif | null>(null);
+  readonly gifSuggestions = signal<GiphyGif[]>([]);
+  readonly gifResults = signal<GiphyGif[]>([]);
+  readonly isSearchingGifs = signal(false);
+  readonly isLoadingGifSuggestions = signal(false);
+  readonly gifSearchError = signal(false);
+  readonly gifSuggestionsError = signal(false);
 
   constructor() {
     this.searchSubscription = this.songQuery.valueChanges
@@ -83,6 +92,45 @@ export class WriteDialogComponent implements OnDestroy {
         this.isSearchingSongs.set(false);
       });
 
+    this.gifSearchSubscription = this.gifQuery.valueChanges
+      .pipe(
+        tap((query) => {
+          this.gifResults.set([]);
+          this.gifSearchError.set(false);
+          this.isSearchingGifs.set(query.trim().length >= 2);
+        }),
+        switchMap((query) => {
+          const term = query.trim();
+          if (term.length < 2) return of([]);
+          return timer(300).pipe(
+            switchMap(() =>
+              this.dataService.loadGiphyConfig().pipe(
+                switchMap((isConfigured) => {
+                  if (!isConfigured) {
+                    this.gifSearchError.set(true);
+                    return of([]);
+                  }
+                  return this.dataService.searchGifs(term).pipe(
+                    catchError(() => {
+                      this.gifSearchError.set(true);
+                      return of([]);
+                    }),
+                  );
+                }),
+                catchError(() => {
+                  this.gifSearchError.set(true);
+                  return of([]);
+                }),
+              ),
+            ),
+          );
+        }),
+      )
+      .subscribe((gifs) => {
+        this.gifResults.set(gifs);
+        this.isSearchingGifs.set(false);
+      });
+
     effect(
       () => {
         const open = this.dialog.writeOpen();
@@ -93,6 +141,7 @@ export class WriteDialogComponent implements OnDestroy {
         if (open) {
           window.setTimeout(() => this.textarea?.nativeElement.focus(), 120);
           this.loadSongSuggestions();
+          this.loadGifSuggestions();
         } else {
           this.resetForm();
         }
@@ -103,7 +152,12 @@ export class WriteDialogComponent implements OnDestroy {
 
   get canSubmit(): boolean {
     const text = (this.form.controls.thoughtText.value ?? '').trim();
-    return text.length > 0 || this.form.controls.file.value !== null || this.selectedSong() !== null;
+    return (
+      text.length > 0 ||
+      this.form.controls.file.value !== null ||
+      this.selectedSong() !== null ||
+      this.selectedGif() !== null
+    );
   }
 
   get characterCount(): number {
@@ -179,15 +233,55 @@ export class WriteDialogComponent implements OnDestroy {
     this.selectedSong.set(null);
   }
 
+  selectGif(gif: GiphyGif): void {
+    this.selectedGif.set(gif);
+    this.gifQuery.setValue('');
+    this.gifResults.set([]);
+  }
+
+  removeGif(): void {
+    this.selectedGif.set(null);
+  }
+
+  private loadGifSuggestions(): void {
+    if (this.gifSuggestions().length > 0 || this.isLoadingGifSuggestions()) return;
+
+    this.isLoadingGifSuggestions.set(true);
+    this.gifSuggestionsError.set(false);
+    this.dataService.loadGiphyConfig().pipe(
+      switchMap((isConfigured) => {
+        if (!isConfigured) {
+          this.gifSuggestionsError.set(true);
+          return of([]);
+        }
+        return this.dataService.getGifSuggestions();
+      }),
+      catchError(() => {
+        this.gifSuggestionsError.set(true);
+        return of([]);
+      }),
+    ).subscribe({
+      next: (gifs) => {
+        this.gifSuggestions.set(gifs);
+        this.isLoadingGifSuggestions.set(false);
+      },
+      error: () => {
+        this.gifSuggestionsError.set(true);
+        this.isLoadingGifSuggestions.set(false);
+      },
+    });
+  }
+
   onSubmit(): void {
     if (this.isLoading() || !this.canSubmit) return;
 
     const text = (this.form.controls.thoughtText.value ?? '').trim();
     const file = this.form.controls.file.value;
     const song = this.selectedSong() ?? undefined;
+    const gifUrl = this.selectedGif()?.gifUrl;
 
     this.isLoading.set(true);
-    this.dataService.postVoiceOut(text, file ?? undefined, song).subscribe({
+    this.dataService.postVoiceOut(text, file ?? undefined, song, gifUrl).subscribe({
       next: () => {
         this.isLoading.set(false);
         this.toast.success('Note posted', 'Your voice is now live on the wall.');
@@ -213,6 +307,7 @@ export class WriteDialogComponent implements OnDestroy {
 
   ngOnDestroy(): void {
     this.searchSubscription.unsubscribe();
+    this.gifSearchSubscription.unsubscribe();
     this.revokePreview();
     if (isPlatformBrowser(this.platformId)) {
       document.body.style.overflow = '';
@@ -243,10 +338,16 @@ export class WriteDialogComponent implements OnDestroy {
     this.dragActive.set(false);
     this.selectedFile.set(null);
     this.selectedSong.set(null);
+    this.selectedGif.set(null);
     this.songQuery.setValue('');
+    this.gifQuery.setValue('');
     this.songResults.set([]);
+    this.gifResults.set([]);
     this.isSearchingSongs.set(false);
+    this.isSearchingGifs.set(false);
     this.songSearchError.set(false);
+    this.gifSearchError.set(false);
+    this.gifSuggestionsError.set(false);
     this.revokePreview();
   }
 }
