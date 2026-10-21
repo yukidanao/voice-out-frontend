@@ -3,7 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Component, OnDestroy, OnInit, PLATFORM_ID, inject } from '@angular/core';
 import { Subscription, fromEvent, interval, of } from 'rxjs';
 import { catchError, debounceTime, switchMap, take, takeWhile } from 'rxjs/operators';
-import { DataService } from '../../services/data.service';
+import { DataService, Song } from '../../services/data.service';
 import { DialogService } from '../../services/dialog.service';
 import { tintFor } from '../../utils/tint';
 import { AudioPlayerComponent } from '../ui/audio-player/audio-player.component';
@@ -16,6 +16,7 @@ interface Voices {
   date?: Date;
   _id?: string;
   fileType?: string;
+  song?: Song;
 }
 
 type FilterValue = 'all' | 'text' | 'image' | 'audio' | 'video';

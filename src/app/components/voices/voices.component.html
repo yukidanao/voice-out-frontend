@@ -168,6 +168,39 @@
                 Shared a {{ mediaLabel(voiceout.fileType || '') }} without words.
               </p>
             }
+
+            @if (voiceout.song; as song) {
+              <div class="mt-4 rounded-2xl border border-white/[0.08] bg-white/[0.03] p-3">
+                <div class="mb-3 flex items-center gap-3">
+                  @if (song.artworkUrl) {
+                    <img [src]="song.artworkUrl" [alt]="song.album || song.title" class="h-11 w-11 rounded-xl object-cover" loading="lazy" />
+                  } @else {
+                    <span class="grid h-11 w-11 place-items-center rounded-xl bg-accent-500/10 text-accent-300">
+                      <app-icon name="music" [size]="17" />
+                    </span>
+                  }
+                  <span class="min-w-0 flex-1">
+                    <span class="block truncate text-xs font-medium text-slate-100">{{ song.title }}</span>
+                    <span class="mt-0.5 block truncate text-[11px] text-slate-400">
+                      {{ song.artist }} · {{ song.album || 'Song' }}
+                    </span>
+                  </span>
+                  @if (song.trackUrl) {
+                    <a
+                      class="text-[11px] text-accent-300 transition hover:text-accent-200"
+                      [href]="song.trackUrl"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >iTunes</a>
+                  }
+                </div>
+                @if (song.previewUrl) {
+                  <app-audio-player [src]="song.previewUrl" title="" [compact]="true" />
+                } @else {
+                  <p class="text-[11px] text-slate-500">Audio preview unavailable.</p>
+                }
+              </div>
+            }
           </div>
         </article>
       }

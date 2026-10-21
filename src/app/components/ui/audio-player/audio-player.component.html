@@ -1,4 +1,4 @@
-<div class="player">
+<div class="player" [class.compact]="compact">
   <button
     type="button"
     class="play"
@@ -17,10 +17,12 @@
 
   <div class="min-w-0 flex-1">
     <div class="meta">
-      <span class="label">
-        <app-icon name="waveform" [size]="12" />
-        {{ title }}
-      </span>
+      @if (title) {
+        <span class="label">
+          <app-icon name="waveform" [size]="12" />
+          {{ title }}
+        </span>
+      }
       <span class="time">
         {{ format(currentTime()) }}<span class="sep">/</span>{{ format(duration()) }}
       </span>

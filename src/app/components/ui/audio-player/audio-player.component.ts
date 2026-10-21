@@ -25,6 +25,7 @@ const BAR_COUNT = 38;
 export class AudioPlayerComponent implements OnChanges, OnDestroy {
   @Input({ required: true }) src!: string;
   @Input() title = 'Voice note';
+  @Input() compact = false;
 
   private readonly platformId = inject(PLATFORM_ID);
   private audio: HTMLAudioElement | null = null;

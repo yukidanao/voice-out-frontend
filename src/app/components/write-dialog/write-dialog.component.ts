@@ -10,18 +10,21 @@ import {
   inject,
   signal,
 } from '@angular/core';
-import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
-import { DataService } from '../../services/data.service';
+import { FormBuilder, FormControl, ReactiveFormsModule } from '@angular/forms';
+import { DataService, Song } from '../../services/data.service';
 import { ToastService } from '../../services/toast.service';
 import { DialogService } from '../../services/dialog.service';
+import { AudioPlayerComponent } from '../ui/audio-player/audio-player.component';
 import { IconComponent } from '../ui/icon/icon.component';
+import { of, Subscription, timer } from 'rxjs';
+import { catchError, switchMap, tap } from 'rxjs/operators';
 
 type FileKind = 'image' | 'audio' | 'video' | 'file';
 
 @Component({
   selector: 'app-write-dialog',
   standalone: true,
-  imports: [ReactiveFormsModule, NgClass, IconComponent],
+  imports: [ReactiveFormsModule, NgClass, IconComponent, AudioPlayerComponent],
   templateUrl: './write-dialog.component.html',
   styleUrls: ['./write-dialog.component.css'],
 })
@@ -33,18 +36,53 @@ export class WriteDialogComponent implements OnDestroy {
   readonly dialog = inject(DialogService);
 
   @ViewChild('textarea') private textarea?: ElementRef<HTMLTextAreaElement>;
+  private readonly searchSubscription: Subscription;
 
   readonly form = this.fb.group({
     thoughtText: [''],
     file: [null as File | null],
   });
+  readonly songQuery = new FormControl('', { nonNullable: true });
 
   readonly isLoading = signal(false);
   readonly dragActive = signal(false);
   readonly selectedFile = signal<File | null>(null);
   readonly previewUrl = signal<string | null>(null);
+  readonly selectedSong = signal<Song | null>(null);
+  readonly songSuggestions = signal<Song[]>([]);
+  readonly songResults = signal<Song[]>([]);
+  readonly isSearchingSongs = signal(false);
+  readonly isLoadingSuggestions = signal(false);
+  readonly songSearchError = signal(false);
 
   constructor() {
+    this.searchSubscription = this.songQuery.valueChanges
+      .pipe(
+        tap((query) => {
+          this.songResults.set([]);
+          this.songSearchError.set(false);
+          this.isSearchingSongs.set(query.trim().length >= 2);
+        }),
+        switchMap((query) => {
+          const term = query.trim();
+          if (term.length < 2) return of([]);
+          return timer(300).pipe(
+            switchMap(() =>
+              this.dataService.searchSongs(term).pipe(
+                catchError(() => {
+                  this.songSearchError.set(true);
+                  return of([]);
+                }),
+              ),
+            ),
+          );
+        }),
+      )
+      .subscribe((songs) => {
+        this.songResults.set(songs);
+        this.isSearchingSongs.set(false);
+      });
+
     effect(
       () => {
         const open = this.dialog.writeOpen();
@@ -54,6 +92,7 @@ export class WriteDialogComponent implements OnDestroy {
 
         if (open) {
           window.setTimeout(() => this.textarea?.nativeElement.focus(), 120);
+          this.loadSongSuggestions();
         } else {
           this.resetForm();
         }
@@ -64,7 +103,7 @@ export class WriteDialogComponent implements OnDestroy {
 
   get canSubmit(): boolean {
     const text = (this.form.controls.thoughtText.value ?? '').trim();
-    return text.length > 0 || this.form.controls.file.value !== null;
+    return text.length > 0 || this.form.controls.file.value !== null || this.selectedSong() !== null;
   }
 
   get characterCount(): number {
@@ -115,14 +154,40 @@ export class WriteDialogComponent implements OnDestroy {
     this.form.controls.file.setValue(null);
   }
 
+  selectSong(song: Song): void {
+    this.selectedSong.set(song);
+    this.songQuery.setValue('');
+    this.songResults.set([]);
+  }
+
+  private loadSongSuggestions(): void {
+    if (this.songSuggestions().length > 0 || this.isLoadingSuggestions()) return;
+
+    this.isLoadingSuggestions.set(true);
+    this.dataService.getSongSuggestions().subscribe({
+      next: (songs) => {
+        this.songSuggestions.set(songs.slice(0, 6));
+        this.isLoadingSuggestions.set(false);
+      },
+      error: () => {
+        this.isLoadingSuggestions.set(false);
+      },
+    });
+  }
+
+  removeSong(): void {
+    this.selectedSong.set(null);
+  }
+
   onSubmit(): void {
     if (this.isLoading() || !this.canSubmit) return;
 
     const text = (this.form.controls.thoughtText.value ?? '').trim();
     const file = this.form.controls.file.value;
+    const song = this.selectedSong() ?? undefined;
 
     this.isLoading.set(true);
-    this.dataService.postVoiceOut(text, file ?? undefined).subscribe({
+    this.dataService.postVoiceOut(text, file ?? undefined, song).subscribe({
       next: () => {
         this.isLoading.set(false);
         this.toast.success('Note posted', 'Your voice is now live on the wall.');
@@ -147,6 +212,7 @@ export class WriteDialogComponent implements OnDestroy {
   }
 
   ngOnDestroy(): void {
+    this.searchSubscription.unsubscribe();
     this.revokePreview();
     if (isPlatformBrowser(this.platformId)) {
       document.body.style.overflow = '';
@@ -176,6 +242,11 @@ export class WriteDialogComponent implements OnDestroy {
     this.isLoading.set(false);
     this.dragActive.set(false);
     this.selectedFile.set(null);
+    this.selectedSong.set(null);
+    this.songQuery.setValue('');
+    this.songResults.set([]);
+    this.isSearchingSongs.set(false);
+    this.songSearchError.set(false);
     this.revokePreview();
   }
 }
