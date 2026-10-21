@@ -14,6 +14,10 @@ Run `ng generate component component-name` to generate a new component. You can 
 
 Run `ng build` to build the project. The build artifacts will be stored in the `dist/` directory.
 
+## Cloudflare Pages deployment
+
+Use `npm run build` as the build command and `dist/voice_out/browser` as the build output directory. The root URL redirects to the prerendered `/home` page.
+
 ## Running unit tests
 
 Run `ng test` to execute the unit tests via [Karma](https://karma-runner.github.io).
