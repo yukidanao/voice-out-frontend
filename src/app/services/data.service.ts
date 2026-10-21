@@ -191,7 +191,7 @@ export class DataService {
   initWebSocket(): void {
     if (isPlatformBrowser(this.platformId)) {
       // Check if we're in the browser
-      this.socket = new WebSocket('http://voiceout-app.leelenardjose.workers.dev');
+      this.socket = new WebSocket('https://voiceout-app.leelenardjose.workers.dev');
 
       this.socket.onmessage = (event) => {
         const message = JSON.parse(event.data);
