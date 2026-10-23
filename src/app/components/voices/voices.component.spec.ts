@@ -31,7 +31,7 @@ describe('VoicesComponent', () => {
         { provide: DataService, useValue: dataService },
         { provide: DialogService, useValue: { openWrite: jasmine.createSpy('openWrite') } },
         { provide: HttpClient, useValue: { head: () => of({ status: 200 }) } },
-        { provide: PLATFORM_ID, useValue: 'server' },
+        { provide: PLATFORM_ID, useValue: 'browser' },
       ],
     })
     .compileComponents();

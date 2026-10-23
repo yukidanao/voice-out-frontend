@@ -174,7 +174,10 @@ export class DataService {
   // GET request to fetch voice outs with pagination
   getVoiceOuts(page: number = 1, pageSize: number = 20): Observable<any> {
     const params = { page: page.toString(), pageSize: pageSize.toString() };
-    return this.http.get<any>(`${this.apiUrl}/getVoiceOuts`, { params });
+    return this.http.get<any>(`${this.apiUrl}/getVoiceOuts`, {
+      params,
+      transferCache: false,
+    });
   }
 
   // DELETE request to delete a voice out by ID

@@ -73,7 +73,9 @@ export class VoicesComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    this.getVoices();
+    if (isPlatformBrowser(this.platformId)) {
+      this.getVoices();
+    }
 
     this.subscriptions.add(
       this.dataService.newVoiceOut$.subscribe((newVoice: Voices) => {
