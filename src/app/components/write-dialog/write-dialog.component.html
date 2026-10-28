@@ -91,14 +91,13 @@
             />
             <p class="mt-1.5 text-[11px] text-slate-500">Search the iTunes catalog to attach a song to your note.</p>
 
-            @if (isSearchingSongs()) {
-              <p class="mt-2 text-xs text-slate-400" role="status">Searching songs...</p>
-            } @else if (songSearchError()) {
-              <p class="mt-2 text-xs text-rose-300" role="alert">Song search is unavailable. Please try again.</p>
-            } @else if (songResults().length > 0) {
-              <ul class="mt-2 max-h-56 overflow-y-auto rounded-2xl border border-white/10 bg-ink-900/95">
+            @if (songResults().length > 0) {
+              <ul
+                class="mt-2 max-h-56 overflow-y-auto rounded-2xl border border-white/10 bg-ink-900/95"
+                (scroll)="onSongListScroll($event)"
+              >
                 @for (songResult of songResults(); track songResult.trackId) {
-                  <li>
+                  <li class="border-b border-white/[0.05] last:border-0">
                     <button
                       type="button"
                       class="flex w-full items-center gap-3 p-2.5 text-left transition hover:bg-white/[0.05]"
@@ -118,9 +117,24 @@
                         </span>
                       </span>
                     </button>
+                    @if (songResult.previewUrl) {
+                      <app-audio-player
+                        class="mx-2.5 mb-2 block"
+                        [src]="songResult.previewUrl"
+                        title=""
+                        [compact]="true"
+                      />
+                    }
                   </li>
                 }
               </ul>
+              @if (songSearchError()) {
+                <p class="mt-2 text-xs text-rose-300" role="alert">Song search is unavailable. Please try again.</p>
+              }
+            } @else if (isSearchingSongs()) {
+              <p class="mt-2 text-xs text-slate-400" role="status">Searching songs...</p>
+            } @else if (songSearchError()) {
+              <p class="mt-2 text-xs text-rose-300" role="alert">Song search is unavailable. Please try again.</p>
             } @else if (songQuery.value.trim().length >= 2) {
               <p class="mt-2 text-xs text-slate-400">No songs found. Try a different search.</p>
             } @else {
@@ -129,33 +143,53 @@
                 @if (isLoadingSuggestions()) {
                   <p class="py-4 text-center text-xs text-slate-500" role="status">Loading songs...</p>
                 } @else if (songSuggestions().length > 0) {
-                  <div class="grid grid-cols-3 gap-2">
+                  <div
+                    class="max-h-56 space-y-2 overflow-y-auto"
+                    (scroll)="onSongListScroll($event)"
+                  >
                     @for (suggestion of songSuggestions(); track suggestion.trackId) {
-                      <button
-                        type="button"
-                        class="min-w-0 overflow-hidden rounded-xl border border-white/[0.08] bg-white/[0.03] p-2 text-left transition hover:border-accent-400/30 hover:bg-white/[0.06]"
-                        (click)="selectSong(suggestion)"
-                      >
-                        @if (suggestion.artworkUrl) {
-                          <img
-                            [src]="suggestion.artworkUrl"
-                            [alt]="suggestion.album || suggestion.title"
-                            class="aspect-square w-full rounded-lg object-cover"
-                          />
-                        } @else {
-                          <span class="grid aspect-square w-full place-items-center rounded-lg bg-white/[0.04] text-slate-400">
-                            <app-icon name="music" [size]="20" />
+                      <div class="overflow-hidden rounded-xl border border-white/[0.08] bg-white/[0.03]">
+                        <button
+                          type="button"
+                          class="flex w-full items-center gap-3 p-2.5 text-left transition hover:bg-white/[0.05]"
+                          (click)="selectSong(suggestion)"
+                        >
+                          @if (suggestion.artworkUrl) {
+                            <img
+                              [src]="suggestion.artworkUrl"
+                              [alt]="suggestion.album || suggestion.title"
+                              class="h-12 w-12 shrink-0 rounded-lg object-cover"
+                            />
+                          } @else {
+                            <span class="grid h-12 w-12 shrink-0 place-items-center rounded-lg bg-white/[0.04] text-slate-400">
+                              <app-icon name="music" [size]="16" />
+                            </span>
+                          }
+                          <span class="min-w-0">
+                            <span class="block truncate text-xs font-medium text-slate-100">
+                              {{ suggestion.title }}
+                            </span>
+                            <span class="mt-0.5 block truncate text-[11px] text-slate-400">
+                              {{ suggestion.artist }}
+                            </span>
                           </span>
+                        </button>
+                        @if (suggestion.previewUrl) {
+                          <app-audio-player
+                            class="mx-2.5 mb-2 block"
+                            [src]="suggestion.previewUrl"
+                            title=""
+                            [compact]="true"
+                          />
                         }
-                        <span class="mt-2 block truncate text-[11px] font-medium text-slate-100">
-                          {{ suggestion.title }}
-                        </span>
-                        <span class="mt-0.5 block truncate text-[10px] text-slate-400">
-                          {{ suggestion.artist }}
-                        </span>
-                      </button>
+                      </div>
                     }
                   </div>
+                  @if (songSuggestionsError()) {
+                    <p class="mt-2 text-xs text-rose-300" role="alert">Song suggestions are unavailable right now.</p>
+                  }
+                } @else if (songSuggestionsError()) {
+                  <p class="py-2 text-xs text-rose-300" role="alert">Song suggestions are unavailable right now.</p>
                 } @else {
                   <p class="py-2 text-xs text-slate-500">Song suggestions are unavailable right now.</p>
                 }
@@ -213,18 +247,11 @@
               >Powered by GIPHY</a>
             </div>
 
-            @if (isSearchingGifs()) {
-              <p class="mt-2 text-xs text-slate-400" role="status">Searching GIFs...</p>
-            } @else if (gifSearchError()) {
-              <p class="mt-2 text-xs text-rose-300" role="alert">
-                @if (dataService.hasGiphyApiKey()) {
-                  GIF search is unavailable. Please try again.
-                } @else {
-                  GIF search needs a GIPHY API key. See the README configuration instructions.
-                }
-              </p>
-            } @else if (gifResults().length > 0) {
-              <div class="mt-2 grid max-h-64 grid-cols-3 gap-2 overflow-y-auto rounded-xl">
+            @if (gifResults().length > 0) {
+              <div
+                class="mt-2 grid max-h-44 grid-cols-3 gap-2 overflow-y-auto rounded-xl"
+                (scroll)="onGifListScroll($event)"
+              >
                 @for (gifResult of gifResults(); track gifResult.id) {
                   <button
                     type="button"
@@ -241,6 +268,28 @@
                   </button>
                 }
               </div>
+              @if (isLoadingMoreGifs()) {
+                <p class="py-2 text-center text-xs text-slate-500" role="status">Loading more GIFs...</p>
+              }
+              @if (gifSearchError()) {
+                <p class="mt-2 text-xs text-rose-300" role="alert">
+                  @if (dataService.hasGiphyApiKey()) {
+                    GIF search is unavailable. Please try again.
+                  } @else {
+                    GIF search needs a GIPHY API key. See the README configuration instructions.
+                  }
+                </p>
+              }
+            } @else if (isSearchingGifs()) {
+              <p class="mt-2 text-xs text-slate-400" role="status">Searching GIFs...</p>
+            } @else if (gifSearchError()) {
+              <p class="mt-2 text-xs text-rose-300" role="alert">
+                @if (dataService.hasGiphyApiKey()) {
+                  GIF search is unavailable. Please try again.
+                } @else {
+                  GIF search needs a GIPHY API key. See the README configuration instructions.
+                }
+              </p>
             } @else if (gifQuery.value.trim().length >= 2) {
               <p class="mt-2 text-xs text-slate-400">No GIFs found. Try another search.</p>
             } @else {
@@ -248,16 +297,11 @@
                 <p class="mb-2 text-[11px] font-medium text-slate-400">Trending GIFs</p>
                 @if (isLoadingGifSuggestions()) {
                   <p class="py-4 text-center text-xs text-slate-500" role="status">Loading GIFs...</p>
-                } @else if (gifSuggestionsError()) {
-                  <p class="py-2 text-xs text-slate-500">
-                    @if (dataService.hasGiphyApiKey()) {
-                      Trending GIFs are unavailable right now.
-                    } @else {
-                      Add a GIPHY API key to enable GIF search and suggestions.
-                    }
-                  </p>
-                } @else {
-                  <div class="grid grid-cols-3 gap-2">
+                } @else if (gifSuggestions().length > 0) {
+                  <div
+                    class="grid max-h-44 grid-cols-3 gap-2 overflow-y-auto rounded-xl"
+                    (scroll)="onGifListScroll($event)"
+                  >
                     @for (gifSuggestion of gifSuggestions(); track gifSuggestion.id) {
                       <button
                         type="button"
@@ -274,6 +318,22 @@
                       </button>
                     }
                   </div>
+                  @if (isLoadingMoreGifs()) {
+                    <p class="py-2 text-center text-xs text-slate-500" role="status">Loading more GIFs...</p>
+                  }
+                  @if (gifSuggestionsError()) {
+                    <p class="py-2 text-xs text-rose-300" role="alert">Trending GIFs are unavailable right now.</p>
+                  }
+                } @else if (gifSuggestionsError()) {
+                  <p class="py-2 text-xs text-slate-500">
+                    @if (dataService.hasGiphyApiKey()) {
+                      Trending GIFs are unavailable right now.
+                    } @else {
+                      Add a GIPHY API key to enable GIF search and suggestions.
+                    }
+                  </p>
+                } @else {
+                  <p class="py-2 text-xs text-slate-500">Trending GIFs are unavailable right now.</p>
                 }
               </div>
             }

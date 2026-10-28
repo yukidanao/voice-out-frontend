@@ -20,6 +20,10 @@ import { of, Subscription, timer } from 'rxjs';
 import { catchError, switchMap, tap } from 'rxjs/operators';
 
 type FileKind = 'image' | 'audio' | 'video' | 'file';
+const SONG_SEARCH_PAGE_SIZE = 8;
+const SUGGESTION_PAGE_SIZE = 6;
+const GIF_PAGE_SIZE = 6;
+const ITUNES_MAX_RESULTS = 200;
 
 @Component({
   selector: 'app-write-dialog',
@@ -38,6 +42,9 @@ export class WriteDialogComponent implements OnDestroy {
   @ViewChild('textarea') private textarea?: ElementRef<HTMLTextAreaElement>;
   private readonly searchSubscription: Subscription;
   private readonly gifSearchSubscription: Subscription;
+  private gifMoreSubscription?: Subscription;
+  private songSearchCatalog: Song[] = [];
+  private songSuggestionCatalog: Song[] = [];
 
   readonly form = this.fb.group({
     thoughtText: [''],
@@ -55,12 +62,18 @@ export class WriteDialogComponent implements OnDestroy {
   readonly songResults = signal<Song[]>([]);
   readonly isSearchingSongs = signal(false);
   readonly isLoadingSuggestions = signal(false);
+  readonly hasMoreSongResults = signal(true);
+  readonly hasMoreSongSuggestions = signal(true);
   readonly songSearchError = signal(false);
+  readonly songSuggestionsError = signal(false);
   readonly selectedGif = signal<GiphyGif | null>(null);
   readonly gifSuggestions = signal<GiphyGif[]>([]);
   readonly gifResults = signal<GiphyGif[]>([]);
   readonly isSearchingGifs = signal(false);
   readonly isLoadingGifSuggestions = signal(false);
+  readonly isLoadingMoreGifs = signal(false);
+  readonly hasMoreGifResults = signal(true);
+  readonly hasMoreGifSuggestions = signal(true);
   readonly gifSearchError = signal(false);
   readonly gifSuggestionsError = signal(false);
 
@@ -68,7 +81,9 @@ export class WriteDialogComponent implements OnDestroy {
     this.searchSubscription = this.songQuery.valueChanges
       .pipe(
         tap((query) => {
+          this.songSearchCatalog = [];
           this.songResults.set([]);
+          this.hasMoreSongResults.set(true);
           this.songSearchError.set(false);
           this.isSearchingSongs.set(query.trim().length >= 2);
         }),
@@ -77,7 +92,7 @@ export class WriteDialogComponent implements OnDestroy {
           if (term.length < 2) return of([]);
           return timer(300).pipe(
             switchMap(() =>
-              this.dataService.searchSongs(term).pipe(
+              this.dataService.searchSongs(term, ITUNES_MAX_RESULTS).pipe(
                 catchError(() => {
                   this.songSearchError.set(true);
                   return of([]);
@@ -88,14 +103,19 @@ export class WriteDialogComponent implements OnDestroy {
         }),
       )
       .subscribe((songs) => {
-        this.songResults.set(songs);
+        this.songSearchCatalog = songs;
+        this.songResults.set(songs.slice(0, SONG_SEARCH_PAGE_SIZE));
+        this.hasMoreSongResults.set(songs.length > SONG_SEARCH_PAGE_SIZE);
         this.isSearchingSongs.set(false);
       });
 
     this.gifSearchSubscription = this.gifQuery.valueChanges
       .pipe(
         tap((query) => {
+          this.gifMoreSubscription?.unsubscribe();
+          this.isLoadingMoreGifs.set(false);
           this.gifResults.set([]);
+          this.hasMoreGifResults.set(true);
           this.gifSearchError.set(false);
           this.isSearchingGifs.set(query.trim().length >= 2);
         }),
@@ -110,7 +130,7 @@ export class WriteDialogComponent implements OnDestroy {
                     this.gifSearchError.set(true);
                     return of([]);
                   }
-                  return this.dataService.searchGifs(term).pipe(
+                  return this.dataService.searchGifs(term, 0, GIF_PAGE_SIZE).pipe(
                     catchError(() => {
                       this.gifSearchError.set(true);
                       return of([]);
@@ -128,6 +148,7 @@ export class WriteDialogComponent implements OnDestroy {
       )
       .subscribe((gifs) => {
         this.gifResults.set(gifs);
+        this.hasMoreGifResults.set(gifs.length === GIF_PAGE_SIZE);
         this.isSearchingGifs.set(false);
       });
 
@@ -214,19 +235,57 @@ export class WriteDialogComponent implements OnDestroy {
     this.songResults.set([]);
   }
 
+  onSongListScroll(event: Event): void {
+    if (!this.isNearScrollEnd(event)) return;
+    const term = this.songQuery.value.trim();
+    if (term.length >= 2) {
+      this.loadMoreSongResults();
+    } else {
+      this.loadMoreSongSuggestions();
+    }
+  }
+
+  onGifListScroll(event: Event): void {
+    if (!this.isNearScrollEnd(event)) return;
+    const term = this.gifQuery.value.trim();
+    if (term.length >= 2) {
+      this.loadMoreGifResults(term);
+    } else {
+      this.loadMoreGifSuggestions();
+    }
+  }
+
   private loadSongSuggestions(): void {
     if (this.songSuggestions().length > 0 || this.isLoadingSuggestions()) return;
 
     this.isLoadingSuggestions.set(true);
-    this.dataService.getSongSuggestions().subscribe({
+    this.songSuggestionsError.set(false);
+    this.dataService.getSongSuggestions(ITUNES_MAX_RESULTS).subscribe({
       next: (songs) => {
-        this.songSuggestions.set(songs.slice(0, 6));
+        this.songSuggestionCatalog = songs;
+        this.songSuggestions.set(songs.slice(0, SUGGESTION_PAGE_SIZE));
+        this.hasMoreSongSuggestions.set(songs.length > SUGGESTION_PAGE_SIZE);
         this.isLoadingSuggestions.set(false);
       },
       error: () => {
         this.isLoadingSuggestions.set(false);
+        this.songSuggestionsError.set(true);
       },
     });
+  }
+
+  private loadMoreSongResults(): void {
+    if (!this.hasMoreSongResults()) return;
+    const count = this.songResults().length + SONG_SEARCH_PAGE_SIZE;
+    this.songResults.set(this.songSearchCatalog.slice(0, count));
+    this.hasMoreSongResults.set(this.songSearchCatalog.length > count);
+  }
+
+  private loadMoreSongSuggestions(): void {
+    if (!this.hasMoreSongSuggestions()) return;
+    const count = this.songSuggestions().length + SUGGESTION_PAGE_SIZE;
+    this.songSuggestions.set(this.songSuggestionCatalog.slice(0, count));
+    this.hasMoreSongSuggestions.set(this.songSuggestionCatalog.length > count);
   }
 
   removeSong(): void {
@@ -254,7 +313,7 @@ export class WriteDialogComponent implements OnDestroy {
           this.gifSuggestionsError.set(true);
           return of([]);
         }
-        return this.dataService.getGifSuggestions();
+        return this.dataService.getGifSuggestions(0, GIF_PAGE_SIZE);
       }),
       catchError(() => {
         this.gifSuggestionsError.set(true);
@@ -263,6 +322,7 @@ export class WriteDialogComponent implements OnDestroy {
     ).subscribe({
       next: (gifs) => {
         this.gifSuggestions.set(gifs);
+        this.hasMoreGifSuggestions.set(gifs.length === GIF_PAGE_SIZE);
         this.isLoadingGifSuggestions.set(false);
       },
       error: () => {
@@ -270,6 +330,52 @@ export class WriteDialogComponent implements OnDestroy {
         this.isLoadingGifSuggestions.set(false);
       },
     });
+  }
+
+  private loadMoreGifResults(term: string): void {
+    if (this.isLoadingMoreGifs() || !this.hasMoreGifResults()) return;
+    const offset = this.gifResults().length;
+    this.isLoadingMoreGifs.set(true);
+    this.gifMoreSubscription = this.dataService.loadGiphyConfig().pipe(
+      switchMap((isConfigured) => {
+        if (!isConfigured) throw new Error('GIPHY API key is not configured');
+        return this.dataService.searchGifs(term, offset, GIF_PAGE_SIZE);
+      }),
+    ).subscribe({
+      next: (gifs) => {
+        if (this.gifQuery.value.trim() === term) {
+          this.gifResults.update((results) => [...results, ...gifs]);
+          this.hasMoreGifResults.set(gifs.length === GIF_PAGE_SIZE);
+        }
+        this.isLoadingMoreGifs.set(false);
+      },
+      error: () => {
+        if (this.gifQuery.value.trim() === term) this.gifSearchError.set(true);
+        this.isLoadingMoreGifs.set(false);
+      },
+    });
+  }
+
+  private loadMoreGifSuggestions(): void {
+    if (this.isLoadingMoreGifs() || !this.hasMoreGifSuggestions()) return;
+    const offset = this.gifSuggestions().length;
+    this.isLoadingMoreGifs.set(true);
+    this.dataService.getGifSuggestions(offset, GIF_PAGE_SIZE).subscribe({
+      next: (gifs) => {
+        this.gifSuggestions.update((results) => [...results, ...gifs]);
+        this.hasMoreGifSuggestions.set(gifs.length === GIF_PAGE_SIZE);
+        this.isLoadingMoreGifs.set(false);
+      },
+      error: () => {
+        this.gifSuggestionsError.set(true);
+        this.isLoadingMoreGifs.set(false);
+      },
+    });
+  }
+
+  private isNearScrollEnd(event: Event): boolean {
+    const element = event.currentTarget as HTMLElement;
+    return element.scrollHeight - element.scrollTop - element.clientHeight < 80;
   }
 
   onSubmit(): void {
@@ -308,6 +414,7 @@ export class WriteDialogComponent implements OnDestroy {
   ngOnDestroy(): void {
     this.searchSubscription.unsubscribe();
     this.gifSearchSubscription.unsubscribe();
+    this.gifMoreSubscription?.unsubscribe();
     this.revokePreview();
     if (isPlatformBrowser(this.platformId)) {
       document.body.style.overflow = '';

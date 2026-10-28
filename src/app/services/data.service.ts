@@ -104,17 +104,17 @@ export class DataService {
     return this.giphyConfigRequest;
   }
 
-  searchGifs(term: string): Observable<GiphyGif[]> {
-    return this.requestGifs('search', { q: term });
+  searchGifs(term: string, offset = 0, limit = 6): Observable<GiphyGif[]> {
+    return this.requestGifs('search', { q: term, offset, limit });
   }
 
-  getGifSuggestions(): Observable<GiphyGif[]> {
-    return this.requestGifs('trending');
+  getGifSuggestions(offset = 0, limit = 6): Observable<GiphyGif[]> {
+    return this.requestGifs('trending', { offset, limit });
   }
 
   private requestGifs(
     endpoint: 'search' | 'trending',
-    query: { q?: string } = {},
+    query: { q?: string; offset?: number; limit?: number } = {},
   ): Observable<GiphyGif[]> {
     const apiKey = this.giphyApiKey;
     if (!apiKey) {
@@ -125,9 +125,10 @@ export class DataService {
       .get<GiphyResponse>(`https://api.giphy.com/v1/gifs/${endpoint}`, {
         params: {
           api_key: apiKey,
-          limit: '6',
+          limit: String(query.limit ?? 6),
+          offset: String(query.offset ?? 0),
           rating: 'g',
-          ...query,
+          ...(query.q ? { q: query.q } : {}),
         },
       })
       .pipe(
@@ -142,18 +143,18 @@ export class DataService {
       );
   }
 
-  searchSongs(term: string): Observable<Song[]> {
-    return this.requestSongs(term);
+  searchSongs(term: string, limit = 200): Observable<Song[]> {
+    return this.requestSongs(term, limit);
   }
 
-  getSongSuggestions(): Observable<Song[]> {
-    return this.requestSongs('popular songs');
+  getSongSuggestions(limit = 200): Observable<Song[]> {
+    return this.requestSongs('popular songs', limit);
   }
 
-  private requestSongs(term: string): Observable<Song[]> {
+  private requestSongs(term: string, limit: number): Observable<Song[]> {
     return this.http
       .get<ItunesSearchResponse>('https://itunes.apple.com/search', {
-        params: { term, entity: 'song', limit: '8' },
+        params: { term, entity: 'song', limit: String(limit) },
       })
       .pipe(
         map((response) =>

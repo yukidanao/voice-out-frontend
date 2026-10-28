@@ -34,6 +34,33 @@ describe('DataService', () => {
     request.flush({ voice_outs: [], totalPages: 0 });
   });
 
+  it('should request up to the iTunes Search API result limit without an unsupported offset', () => {
+    service.searchSongs('test song', 200).subscribe();
+
+    const request = httpTestingController.expectOne(
+      (req) =>
+        req.url === 'https://itunes.apple.com/search' &&
+        req.params.get('term') === 'test song' &&
+        req.params.get('limit') === '200' &&
+        !req.params.has('offset'),
+    );
+    request.flush({ results: [] });
+  });
+
+  it('should request GIF pages using the GIPHY offset', () => {
+    service.loadGiphyConfig().subscribe();
+    httpTestingController.expectOne('/config.json').flush({ apiKey: 'test-key' });
+
+    service.getGifSuggestions(6, 6).subscribe();
+    const request = httpTestingController.expectOne(
+      (req) =>
+        req.url === 'https://api.giphy.com/v1/gifs/trending' &&
+        req.params.get('limit') === '6' &&
+        req.params.get('offset') === '6',
+    );
+    request.flush({ data: [] });
+  });
+
   afterEach(() => {
     httpTestingController.verify();
   });
