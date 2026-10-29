@@ -10,7 +10,12 @@ import { VoicesComponent } from './voices.component';
 describe('VoicesComponent', () => {
   let component: VoicesComponent;
   let fixture: ComponentFixture<VoicesComponent>;
-  let dataService: { newVoiceOut$: Subject<unknown>; getVoiceOuts: jasmine.Spy };
+  let dataService: {
+    newVoiceOut$: Subject<unknown>;
+    getVoiceOuts: jasmine.Spy;
+    initWebSocket: jasmine.Spy;
+    closeWebSocket: jasmine.Spy;
+  };
 
   beforeEach(async () => {
     const pages = [
@@ -23,6 +28,8 @@ describe('VoicesComponent', () => {
       getVoiceOuts: jasmine.createSpy('getVoiceOuts').and.callFake((page: number) =>
         of(pages[page - 1]),
       ),
+      initWebSocket: jasmine.createSpy('initWebSocket'),
+      closeWebSocket: jasmine.createSpy('closeWebSocket'),
     };
 
     await TestBed.configureTestingModule({

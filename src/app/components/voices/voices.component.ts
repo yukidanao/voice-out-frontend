@@ -1,6 +1,6 @@
 import { DatePipe, isPlatformBrowser } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
-import { Component, OnDestroy, OnInit, PLATFORM_ID, inject } from '@angular/core';
+import { Component, NgZone, OnDestroy, OnInit, PLATFORM_ID, inject } from '@angular/core';
 import { Subscription, fromEvent, interval, of } from 'rxjs';
 import { catchError, debounceTime, switchMap, take, takeWhile } from 'rxjs/operators';
 import { DataService, Song } from '../../services/data.service';
@@ -40,6 +40,7 @@ export class VoicesComponent implements OnInit, OnDestroy {
   private readonly dialog = inject(DialogService);
   private readonly http = inject(HttpClient);
   private readonly platformId = inject(PLATFORM_ID);
+  private readonly ngZone = inject(NgZone);
   private readonly subscriptions = new Subscription();
 
   voices: Voices[] = [];
@@ -74,6 +75,7 @@ export class VoicesComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     if (isPlatformBrowser(this.platformId)) {
+      this.dataService.initWebSocket();
       this.getVoices();
     }
 
@@ -92,9 +94,11 @@ export class VoicesComponent implements OnInit, OnDestroy {
 
     if (isPlatformBrowser(this.platformId)) {
       this.subscriptions.add(
-        fromEvent(window, 'scroll')
-          .pipe(debounceTime(200))
-          .subscribe(() => this.onScroll()),
+        this.ngZone.runOutsideAngular(() =>
+          fromEvent(window, 'scroll', { passive: true })
+            .pipe(debounceTime(200))
+            .subscribe(() => this.onScroll()),
+        ),
       );
     }
   }
@@ -208,12 +212,15 @@ export class VoicesComponent implements OnInit, OnDestroy {
     const scrollPosition = window.innerHeight + window.scrollY;
     const threshold = document.body.offsetHeight - 240;
     if (scrollPosition >= threshold) {
-      this.getVoices();
+      this.ngZone.run(() => this.getVoices());
     }
   }
 
   ngOnDestroy(): void {
     this.subscriptions.unsubscribe();
+    if (isPlatformBrowser(this.platformId)) {
+      this.dataService.closeWebSocket();
+    }
   }
 
   private checkFileAvailability(url: string) {

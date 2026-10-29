@@ -62,11 +62,7 @@ export class DataService {
   constructor(
     private http: HttpClient,
     @Inject(PLATFORM_ID) private platformId: Object
-  ) {
-    if (isPlatformBrowser(this.platformId)) {
-      this.initWebSocket();
-    }
-  }
+  ) {}
 
   // POST request to add a new voice out
   postVoiceOut(voiceOut: string, file?: File, song?: Song, gifUrl?: string): Observable<any> {
@@ -193,24 +189,30 @@ export class DataService {
 
   // Initialize WebSocket connection
   initWebSocket(): void {
-    if (isPlatformBrowser(this.platformId)) {
-      // Check if we're in the browser
-      this.socket = new WebSocket('https://voiceout-app.leelenardjose.workers.dev');
+    if (isPlatformBrowser(this.platformId) && !this.socket) {
+      const socket = new WebSocket('wss://voiceout-app.leelenardjose.workers.dev');
+      this.socket = socket;
 
-      this.socket.onmessage = (event) => {
+      socket.onmessage = (event) => {
         const message = JSON.parse(event.data);
         if (message.type === 'voice_out') {
           this.newVoiceOut$.next(message.data);
         }
       };
 
-      this.socket.onclose = () => {
+      socket.onclose = () => {
+        if (this.socket === socket) this.socket = null;
         console.log('WebSocket connection closed');
       };
 
-      this.socket.onerror = (error) => {
+      socket.onerror = (error) => {
         console.error('WebSocket error:', error);
       };
     }
+  }
+
+  closeWebSocket(): void {
+    this.socket?.close();
+    this.socket = null;
   }
 }

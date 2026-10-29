@@ -11,7 +11,14 @@
   (keydown)="onKeydown($event)"
   (dblclick)="toggleFullscreen()"
 >
-  <video #video class="media" playsinline preload="metadata" (click)="toggle()"></video>
+  <video
+    #video
+    class="media"
+    playsinline
+    preload="none"
+    [attr.poster]="poster || null"
+    (click)="toggle()"
+  ></video>
 
   <button
     type="button"

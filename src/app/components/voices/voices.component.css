@@ -20,9 +20,11 @@
   pointer-events: none;
 }
 
-.card.voice-card:hover {
-  border-color: hsl(var(--tint, 220) 80% 66% / 0.32);
-  box-shadow: 0 26px 58px -34px hsl(var(--tint, 220) 85% 55% / 0.85);
+@media (hover: hover) and (pointer: fine) {
+  .card.voice-card:hover {
+    border-color: hsl(var(--tint, 220) 80% 66% / 0.32);
+    box-shadow: 0 26px 58px -34px hsl(var(--tint, 220) 85% 55% / 0.85);
+  }
 }
 
 .voice-card .avatar {

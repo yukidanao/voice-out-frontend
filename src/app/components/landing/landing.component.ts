@@ -1,5 +1,5 @@
 import { isPlatformBrowser } from '@angular/common';
-import { Component, OnDestroy, OnInit, PLATFORM_ID, inject } from '@angular/core';
+import { Component, NgZone, OnDestroy, OnInit, PLATFORM_ID, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { DialogService } from '../../services/dialog.service';
 import { IconComponent, IconName } from '../ui/icon/icon.component';
@@ -21,6 +21,7 @@ interface Feature {
 export class LandingComponent implements OnInit, OnDestroy {
   private readonly platformId = inject(PLATFORM_ID);
   private readonly dialog = inject(DialogService);
+  private readonly ngZone = inject(NgZone);
 
   readonly emotions = ['Alone', 'Embarrassed', 'Sad', 'Happy', 'Excited', 'Hopeful'];
 
@@ -78,6 +79,8 @@ export class LandingComponent implements OnInit, OnDestroy {
       speed = 420;
     }
 
-    this.timer = setTimeout(() => this.typeEffect(), speed);
+    this.timer = this.ngZone.runOutsideAngular(() =>
+      setTimeout(() => this.ngZone.run(() => this.typeEffect()), speed),
+    );
   }
 }

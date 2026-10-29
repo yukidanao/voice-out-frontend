@@ -7,4 +7,6 @@
 </div>
 
 <app-toast />
-<app-write-dialog />
+@defer (when dialog.writeOpen(); prefetch on idle) {
+  <app-write-dialog />
+}

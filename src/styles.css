@@ -25,7 +25,7 @@
       ),
       radial-gradient(46rem 34rem at -4% 4%, rgba(168, 85, 247, 0.1), transparent 58%),
       radial-gradient(44rem 40rem at 50% 118%, rgba(56, 189, 248, 0.06), transparent 62%);
-    background-attachment: fixed;
+    background-attachment: scroll;
   }
 
   /* Fine grain overlay for depth */
@@ -235,5 +235,24 @@
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
+  }
+}
+
+@media (max-width: 767px) {
+  body {
+    background-image: none;
+  }
+
+  body::before {
+    display: none;
+  }
+
+  .glow-orb {
+    display: none;
+  }
+
+  .card.voice-card {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
   }
 }

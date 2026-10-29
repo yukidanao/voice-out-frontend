@@ -27,6 +27,7 @@ const IDLE_DELAY = 2400;
 })
 export class VideoPlayerComponent implements AfterViewInit, OnChanges, OnDestroy {
   @Input({ required: true }) src!: string;
+  @Input() poster?: string;
   @Input() label = 'Video note';
 
   @ViewChild('frame') private frameRef?: ElementRef<HTMLDivElement>;
