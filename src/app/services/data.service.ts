@@ -15,6 +15,21 @@ export interface Song {
   trackUrl?: string;
 }
 
+export interface PublicMessageSong {
+  trackId?: string;
+  title: string;
+  artist: string;
+  albumArtUrl?: string;
+  spotifyUrl?: string;
+}
+
+export interface PublicMessage {
+  id?: string;
+  createdAt?: string;
+  message: string;
+  song?: PublicMessageSong;
+}
+
 export interface GiphyGif {
   id: string;
   title: string;
@@ -143,6 +158,26 @@ export class DataService {
     return this.requestSongs(term, limit);
   }
 
+  findSongPreview(title: string, artist: string): Observable<string | undefined> {
+    const normalize = (value: string) =>
+      value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]/g, '');
+    const normalizedTitle = normalize(title);
+    const normalizedArtist = normalize(artist);
+
+    return this.requestSongs(`${title} ${artist}`, 10).pipe(
+      map(
+        (songs) =>
+          songs.find(
+            (song) =>
+              song.previewUrl &&
+              normalize(song.title) === normalizedTitle &&
+              (normalize(song.artist).includes(normalizedArtist) ||
+                normalizedArtist.includes(normalize(song.artist))),
+          )?.previewUrl,
+      ),
+    );
+  }
+
   getSongSuggestions(limit = 200): Observable<Song[]> {
     return this.requestSongs('popular songs', limit);
   }
@@ -175,6 +210,49 @@ export class DataService {
       params,
       transferCache: false,
     });
+  }
+
+  getPublicMessages(): Observable<PublicMessage[]> {
+    return this.http.get<unknown>(`${this.apiUrl}/messages`).pipe(
+      map((response) => {
+        if (!Array.isArray(response)) {
+          throw new Error('Messages service returned an invalid response');
+        }
+
+        return response.flatMap((entry): PublicMessage[] => {
+          if (!isRecord(entry) || entry['is_public'] !== true) return [];
+
+          const message =
+            typeof entry['message'] === 'string' && entry['message'].trim()
+              ? entry['message']
+              : undefined;
+          if (!message) return [];
+
+          const title = nonEmptyString(entry['song_title']);
+          const artist = nonEmptyString(entry['song_artist']);
+          const trackId = spotifyTrackId(entry['spotify_url']);
+          const song =
+            title && artist
+              ? {
+                  trackId,
+                  title,
+                  artist,
+                  albumArtUrl: httpsUrl(entry['song_album_art']),
+                  spotifyUrl: trackId ? httpsUrl(entry['spotify_url']) : undefined,
+                }
+              : undefined;
+
+          return [
+            {
+              id: nonEmptyString(entry['id']),
+              createdAt: nonEmptyString(entry['created_at']),
+              message,
+              ...(song ? { song } : {}),
+            },
+          ];
+        });
+      }),
+    );
   }
 
   // DELETE request to delete a voice out by ID
@@ -214,5 +292,38 @@ export class DataService {
   closeWebSocket(): void {
     this.socket?.close();
     this.socket = null;
+  }
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+function nonEmptyString(value: unknown): string | undefined {
+  if (typeof value !== 'string') return undefined;
+  const trimmed = value.trim();
+  return trimmed || undefined;
+}
+
+function httpsUrl(value: unknown): string | undefined {
+  if (typeof value !== 'string') return undefined;
+
+  try {
+    const url = new URL(value);
+    return url.protocol === 'https:' ? url.toString() : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+function spotifyTrackId(value: unknown): string | undefined {
+  if (typeof value !== 'string') return undefined;
+
+  try {
+    const url = new URL(value);
+    if (url.protocol !== 'https:' || url.hostname !== 'open.spotify.com') return undefined;
+    return url.pathname.match(/^\/track\/([A-Za-z0-9]+)\/?$/)?.[1];
+  } catch {
+    return undefined;
   }
 }

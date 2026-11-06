@@ -38,6 +38,18 @@
     <p class="mt-2 text-xs text-slate-500" role="status">
       Filters apply to {{ voices.length }} loaded {{ voices.length === 1 ? 'note' : 'notes' }}.
     </p>
+    @if (messagesLoadError) {
+      <p class="mt-2 flex flex-wrap items-center gap-2 text-xs text-slate-400" role="status">
+        Song dedications couldn't be loaded.
+        <button
+          type="button"
+          class="text-accent-300 transition hover:text-accent-200"
+          (click)="loadPublicMessages()"
+        >
+          Retry
+        </button>
+      </p>
+    }
   </header>
 
   @if (loading) {
@@ -180,11 +192,19 @@
                       [href]="song.trackUrl"
                       target="_blank"
                       rel="noopener noreferrer"
-                    >iTunes</a>
+                    >{{ song.source === 'spotify' ? 'Spotify' : 'iTunes' }}</a>
                   }
                 </div>
                 @if (song.previewUrl) {
                   <app-audio-player [src]="song.previewUrl" title="" [compact]="true" />
+                } @else if (voiceout.spotifyEmbedUrl) {
+                  <iframe
+                    [src]="voiceout.spotifyEmbedUrl"
+                    [title]="'Play ' + song.title + ' by ' + song.artist + ' on Spotify'"
+                    class="block h-20 w-full rounded-xl"
+                    loading="lazy"
+                    allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+                  ></iframe>
                 } @else {
                   <p class="text-[11px] text-slate-500">Audio preview unavailable.</p>
                 }

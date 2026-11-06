@@ -1,9 +1,10 @@
 import { DatePipe, isPlatformBrowser } from '@angular/common';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { HttpClient } from '@angular/common/http';
 import { Component, NgZone, OnDestroy, OnInit, PLATFORM_ID, inject } from '@angular/core';
-import { Subscription, fromEvent, interval, of } from 'rxjs';
-import { catchError, debounceTime, switchMap, take, takeWhile } from 'rxjs/operators';
-import { DataService, Song } from '../../services/data.service';
+import { EMPTY, Subscription, from, fromEvent, interval, of, timeout } from 'rxjs';
+import { catchError, debounceTime, mergeMap, switchMap, take, takeWhile, tap } from 'rxjs/operators';
+import { DataService, PublicMessage, Song } from '../../services/data.service';
 import { DialogService } from '../../services/dialog.service';
 import { tintFor } from '../../utils/tint';
 import { AudioPlayerComponent } from '../ui/audio-player/audio-player.component';
@@ -13,11 +14,13 @@ import { IconComponent, IconName } from '../ui/icon/icon.component';
 interface Voices {
   voice_out: string;
   file?: string;
-  date?: Date;
+  date?: Date | string;
   _id?: string;
   fileType?: string;
   song?: Song;
   gifUrl?: string;
+  source?: 'voiceout' | 'messages';
+  spotifyEmbedUrl?: SafeResourceUrl;
 }
 
 type FilterValue = 'all' | 'text' | 'image' | 'gif' | 'audio' | 'video';
@@ -39,14 +42,17 @@ export class VoicesComponent implements OnInit, OnDestroy {
   private readonly dataService = inject(DataService);
   private readonly dialog = inject(DialogService);
   private readonly http = inject(HttpClient);
+  private readonly sanitizer = inject(DomSanitizer);
   private readonly platformId = inject(PLATFORM_ID);
   private readonly ngZone = inject(NgZone);
   private readonly subscriptions = new Subscription();
+  private messagesRequest?: Subscription;
 
   voices: Voices[] = [];
   loading = true;
   lazyLoading = false;
   loadError = false;
+  messagesLoadError = false;
   currentPage = 1;
   pageSize = 20;
   totalPages = 0;
@@ -77,6 +83,7 @@ export class VoicesComponent implements OnInit, OnDestroy {
     if (isPlatformBrowser(this.platformId)) {
       this.dataService.initWebSocket();
       this.getVoices();
+      this.loadPublicMessages();
     }
 
     this.subscriptions.add(
@@ -85,8 +92,10 @@ export class VoicesComponent implements OnInit, OnDestroy {
           const voice: Voices = {
             ...newVoice,
             fileType: this.getFileType(newVoice.file || ''),
+            source: 'voiceout',
           };
           this.voices.unshift(voice);
+          this.sortVoices();
           this.waitForFileToBeAvailable(voice);
         }
       }),
@@ -117,9 +126,11 @@ export class VoicesComponent implements OnInit, OnDestroy {
           this.voices.push({
             ...voiceout,
             fileType: this.getFileType(voiceout.file || ''),
+            source: 'voiceout',
           });
         });
 
+        this.sortVoices();
         this.totalPages = response.totalPages ?? 0;
         this.reachedEnd = this.currentPage >= this.totalPages;
         this.currentPage += 1;
@@ -154,8 +165,48 @@ export class VoicesComponent implements OnInit, OnDestroy {
     this.loading = true;
     this.reachedEnd = false;
     this.currentPage = 1;
-    this.voices = [];
+    this.voices = this.voices.filter((voice) => voice.source === 'messages');
     this.getVoices();
+  }
+
+  loadPublicMessages(): void {
+    this.messagesRequest?.unsubscribe();
+    this.messagesLoadError = false;
+    this.messagesRequest = this.dataService
+      .getPublicMessages()
+      .pipe(timeout({ first: 10000 }))
+      .subscribe({
+        next: (messages) => {
+          const messageVoices = messages.map((message) => this.toVoice(message));
+          this.voices = this.voices
+            .filter((voice) => voice.source !== 'messages')
+            .concat(messageVoices);
+          this.sortVoices();
+          this.subscriptions.add(
+            from(messageVoices)
+              .pipe(
+                mergeMap(
+                  (voice) => {
+                    if (!voice.song) return EMPTY;
+                    return this.dataService
+                      .findSongPreview(voice.song.title, voice.song.artist)
+                      .pipe(
+                        tap((previewUrl) => {
+                          if (previewUrl && voice.song) voice.song.previewUrl = previewUrl;
+                        }),
+                        catchError(() => EMPTY),
+                      );
+                  },
+                  4,
+                ),
+              )
+              .subscribe(),
+          );
+        },
+        error: () => {
+          this.messagesLoadError = true;
+        },
+      });
   }
 
   openWrite(): void {
@@ -218,6 +269,7 @@ export class VoicesComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.subscriptions.unsubscribe();
+    this.messagesRequest?.unsubscribe();
     if (isPlatformBrowser(this.platformId)) {
       this.dataService.closeWebSocket();
     }
@@ -246,5 +298,42 @@ export class VoicesComponent implements OnInit, OnDestroy {
           }
         }),
     );
+  }
+
+  private toVoice(message: PublicMessage): Voices {
+    const trackId = message.song?.trackId;
+    const date = message.createdAt ? new Date(message.createdAt) : undefined;
+
+    return {
+      _id: message.id ? `messages:${message.id}` : undefined,
+      source: 'messages',
+      voice_out: message.message,
+      date: date && Number.isFinite(date.getTime()) ? date : undefined,
+      song: message.song
+        ? {
+            source: 'spotify',
+            trackId: trackId ?? '',
+            title: message.song.title,
+            artist: message.song.artist,
+            artworkUrl: message.song.albumArtUrl,
+            trackUrl: message.song.spotifyUrl,
+          }
+        : undefined,
+      spotifyEmbedUrl: trackId
+        ? this.sanitizer.bypassSecurityTrustResourceUrl(
+            `https://open.spotify.com/embed/track/${trackId}?theme=0`,
+          )
+        : undefined,
+    };
+  }
+
+  private sortVoices(): void {
+    this.voices.sort((left, right) => this.timestamp(right.date) - this.timestamp(left.date));
+  }
+
+  private timestamp(date: Date | string | undefined): number {
+    if (!date) return 0;
+    const timestamp = date instanceof Date ? date.getTime() : Date.parse(date);
+    return Number.isFinite(timestamp) ? timestamp : 0;
   }
 }
